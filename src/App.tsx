@@ -1,9 +1,38 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import MapPage from './pages/MapPage';
 import AboutPage from './pages/AboutPage';
+import WorksPage from './pages/WorksPage';
 import { useState, useEffect } from 'react';
+
+function NavigationLinks() {
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
+
+  return (
+    <>
+      <Link 
+        to="/map" 
+        className={`border-b-2 transition-colors ${isActive('/map') ? 'text-[#991B1B] dark:text-red-400 border-[#991B1B] dark:border-red-400' : 'text-[#1A1A1A] dark:text-stone-300 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 opacity-70 hover:opacity-100'}`}
+      >
+        Harita
+      </Link>
+      <Link 
+        to="/works" 
+        className={`border-b-2 transition-colors ${isActive('/works') ? 'text-[#991B1B] dark:text-red-400 border-[#991B1B] dark:border-red-400' : 'text-[#1A1A1A] dark:text-stone-300 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 opacity-70 hover:opacity-100'}`}
+      >
+        Eserler
+      </Link>
+      <Link 
+        to="/about" 
+        className={`border-b-2 transition-colors ${isActive('/about') ? 'text-[#991B1B] dark:text-red-400 border-[#991B1B] dark:border-red-400' : 'text-[#1A1A1A] dark:text-stone-300 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 opacity-70 hover:opacity-100'}`}
+      >
+        Hakkında
+      </Link>
+    </>
+  );
+}
 
 export default function App() {
   const [isDark, setIsDark] = useState(() => {
@@ -36,10 +65,8 @@ export default function App() {
             </div>
             <span className="text-xl font-serif font-bold tracking-tight uppercase text-[#991B1B] dark:text-red-500">Mimar Sinan'ın İzinde</span>
           </Link>
-          <div className="hidden md:flex gap-8 text-sm font-medium uppercase tracking-widest">
-            <Link to="/map" className="text-[#991B1B] dark:text-red-400 border-b-2 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 transition-colors">Harita</Link>
-            <Link to="/" className="opacity-50 hover:opacity-100 dark:text-stone-300 transition-opacity">Eserler</Link>
-            <Link to="/about" className="opacity-50 hover:opacity-100 dark:text-stone-300 transition-opacity">Hakkında</Link>
+          <div className="hidden md:flex gap-8 text-sm font-medium uppercase tracking-widest h-full items-center pt-2">
+            <NavigationLinks />
           </div>
           <div className="flex items-center gap-6">
             <button 
@@ -61,6 +88,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/map" element={<MapPage />} />
+            <Route path="/works" element={<WorksPage />} />
             <Route path="/about" element={<AboutPage />} />
           </Routes>
         </main>
