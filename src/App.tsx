@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import MapPage from './pages/MapPage';
@@ -8,7 +8,18 @@ import { useState, useEffect } from 'react';
 
 function NavigationLinks() {
   const location = useLocation();
+  const navigate = useNavigate();
   const isActive = (path: string) => location.pathname === path;
+
+  const handleContactClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (location.pathname !== '/') {
+      navigate('/#iletisim');
+    } else {
+      const el = document.getElementById('iletisim');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <>
@@ -30,6 +41,13 @@ function NavigationLinks() {
       >
         Hakkında
       </Link>
+      <a 
+        href="/#iletisim"
+        onClick={handleContactClick}
+        className={`border-b-2 transition-colors text-[#1A1A1A] dark:text-stone-300 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 opacity-70 hover:opacity-100 cursor-pointer`}
+      >
+        İletişim
+      </a>
     </>
   );
 }
