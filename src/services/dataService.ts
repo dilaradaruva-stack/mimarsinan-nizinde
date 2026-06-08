@@ -1,7 +1,7 @@
 import Papa from 'papaparse';
 import { Work } from '../types';
 
-const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSvQE_iCLn_t17_pPsZRbQBUFkos0t5uo6c3hdR3I7Mol7dkO-ISnKLeR0pm8lRDTVZQbUDYJCuB3s8/pub?gid=0&single=true&output=csv";
+const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWf38Vkg27aMNgJE-fOFMzPLHD3eKgG1EYLrnDLcLE4MNuPHptx99XwLS-PZr8RaTSEaB2Q1f2eyi5/pub?output=csv";
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -61,6 +61,63 @@ async function geocodeWorks(works: Work[], onProgress?: (current: number, total:
     'Kara Ahmed Paşa': { lat: 41.0208, lng: 28.9284 }, // Topkapi
     'Rüstem Paşa Medresesi': { lat: 41.0125, lng: 28.9691 },
     'Cafer Ağa Medresesi': { lat: 41.0090, lng: 28.9796 },
+    'Semiz Ali Paşa Medresesi': { lat: 41.0181, lng: 28.9376 },
+    'Sultan Süleyman Türbesi': { lat: 41.0163, lng: 28.9644 },
+    'Hürrem Sultan Türbesi': { lat: 41.0160, lng: 28.9645 },
+    'Şehzade Mehmet Türbesi': { lat: 41.0139, lng: 28.9575 },
+    'Banya Başı Camii': { lat: 42.6995, lng: 23.3225 },
+    'Mustafa Paşa Köprüsü': { lat: 41.7694, lng: 26.1963 },
+    'Alpullu (Sinanlı) Köprüsü': { lat: 41.3653, lng: 27.1517 },
+    'Silivri (Mimar Sinan) Köprüsü': { lat: 41.0729, lng: 28.2435 },
+    'Kanuni Sultan Süleyman Köprüsü': { lat: 41.0232, lng: 28.5724 },
+    'Cedid Ali Paşa Camii': { lat: 41.4300, lng: 27.0933 },
+    'Pertev Paşa Camii': { lat: 40.7634, lng: 29.9392 },
+    'Defterdar Mahmut Çelebi Camii': { lat: 41.0425, lng: 28.9328 },
+    'Gazi İskender Paşa Camii': { lat: 41.1158, lng: 29.0881 },
+    'Kadırga Sokollu Medresesi': { lat: 41.0048, lng: 28.9721 },
+    'Mihrimah Sultan Medresesi': { lat: 41.0269, lng: 29.0158 },
+    'Hüsrev Paşa Medresesi': { lat: 38.4891, lng: 43.3400 },
+    'Süleymaniye Darülhadis': { lat: 41.0161, lng: 28.9632 },
+    'Süleymaniye Tıp': { lat: 41.0159, lng: 28.9620 },
+    'Süleymaniye Darüşşifası': { lat: 41.0154, lng: 28.9616 },
+    'Haseki Sultan Darüşşifası': { lat: 41.0094, lng: 28.9405 },
+    'Atik Valide Darüşşifası': { lat: 41.0183, lng: 29.0227 },
+    'Kurşunlu Han (Galata)': { lat: 41.0232, lng: 28.9744 },
+    'Rüstem Paşa Kervansarayı (Ereğli)': { lat: 37.5147, lng: 34.0536 },
+    'Ekmekçizade Ahmet Paşa Kervansarayı': { lat: 41.6744, lng: 26.5621 },
+    'Siyavuş Paşa Türbesi': { lat: 41.0478, lng: 28.9344 },
+    'Rüstem Paşa Türbesi': { lat: 41.0145, lng: 28.9610 },
+    'Hüsrev Paşa Türbesi': { lat: 41.0203, lng: 28.9515 },
+    'Şah Huban Hatun Türbesi': { lat: 41.0242, lng: 28.9328 },
+    'Kılıç Ali Paşa Türbesi': { lat: 41.0267, lng: 28.9806 },
+    'Pertev Paşa Türbesi': { lat: 41.0450, lng: 28.9333 },
+    'Kılıç Ali Paşa Hamamı': { lat: 41.0264, lng: 28.9809 },
+    'Çemberlitaş Hamamı': { lat: 41.0084, lng: 28.9715 },
+    'Ortaköy Hamamı': { lat: 41.0478, lng: 29.0264 },
+    'Bosnalı Mehmed Paşa Camii': { lat: 42.6995, lng: 23.3225 }, // Uses Banya Bashi or same coords broadly
+    'Behram Paşa Camii': { lat: 37.9095, lng: 40.2375 },
+    'Melek Ahmed Paşa Camii': { lat: 37.9130, lng: 40.2325 },
+    'Kurt Çelebi Camii': { lat: 41.0339, lng: 28.9772 },
+    'Dramman Yunus Bey Camii': { lat: 41.0264, lng: 28.9431 },
+    'Tophane (Kurşunlu) Mahzeni': { lat: 41.0261, lng: 28.9818 },
+    'Atik Valide İmareti': { lat: 41.0183, lng: 29.0227 },
+    'Kapıağası (Haramidere) Köprüsü': { lat: 41.0125, lng: 28.6750 },
+    'Arslanağa Köprüsü': { lat: 42.7142, lng: 18.3541 },
+    'Süleymaniye Rabi Medresesi': { lat: 41.0161, lng: 28.9632 },
+    'Nişancı Mehmed Bey Medresesi': { lat: 41.0180, lng: 28.9427 },
+    'Yahya Efendi Medresesi': { lat: 41.0478, lng: 29.0116 },
+    'Fatma Sultan Türbesi': { lat: 41.0159, lng: 28.9644 },
+    'Zeyrek Çinili Hamam': { lat: 41.0205, lng: 28.9567 },
+    'Süleymaniye Hamamı': { lat: 41.0163, lng: 28.9634 },
+    'Rüstem Paşa Hamamı': { lat: 40.6908, lng: 30.2647 },
+    'Yedikule Hacı Evliya Hamamı': { lat: 40.9996, lng: 28.9234 },
+    'Nişancı Paşa Hamamı': { lat: 41.0200, lng: 28.9430 },
+    'Atik Valide Hamamı': { lat: 41.0185, lng: 29.0220 },
+    'Ferruh Kethüda Camii': { lat: 41.0349, lng: 28.9448 },
+    'Şehzade Cihangir Cami': { lat: 41.0305, lng: 28.9863 },
+    'Ahi Çelebi Cami': { lat: 41.0189, lng: 28.9620 },
+    'Ebulfazl Camii': { lat: 41.0315, lng: 28.9814 },
+    'Şah Sultan Camii': { lat: 41.0416, lng: 28.9348 },
     'Semiz Ali Paşa Med.': { lat: 41.0181, lng: 28.9376 },
     'Sultan Süleyman Türb.': { lat: 41.0163, lng: 28.9644 },
     'Hürrem Sultan Türb.': { lat: 41.0160, lng: 28.9645 },
@@ -92,9 +149,10 @@ async function geocodeWorks(works: Work[], onProgress?: (current: number, total:
   for (let i = 0; i < total; i++) {
     const work = works[i];
     
-    if (hardcodedCoords[work.name]) {
+    const hardcodedKey = Object.keys(hardcodedCoords).find(k => work.name.includes(k) || k.includes(work.name));
+    if (hardcodedKey) {
         if (onProgress) onProgress(i + 1, total);
-        result.push({ ...work, ...hardcodedCoords[work.name] });
+        result.push({ ...work, ...hardcodedCoords[hardcodedKey] });
         continue;
     }
 

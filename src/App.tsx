@@ -1,10 +1,42 @@
 import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, User } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import MapPage from './pages/MapPage';
 import AboutPage from './pages/AboutPage';
 import WorksPage from './pages/WorksPage';
 import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { CommentProvider } from './context/CommentContext';
+import AuthModal from './components/AuthModal';
+
+function UserMenu() {
+  const { user, setShowAuthModal, logout } = useAuth();
+  
+  if (user) {
+    return (
+      <div className="flex items-center gap-3 ml-2 pl-4 border-l border-gray-200 dark:border-stone-700">
+        <div className="w-8 h-8 rounded-full bg-[#1A1A1A] dark:bg-stone-700 text-white flex items-center justify-center font-bold text-xs uppercase cursor-pointer" title={user.name}>
+          {user.initials}
+        </div>
+        <button onClick={logout} className="text-xs uppercase font-bold text-gray-500 hover:text-[#991B1B] transition-colors">
+          Çıkış
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="ml-2 pl-4 border-l border-gray-200 dark:border-stone-700 flex items-center">
+       <button 
+         onClick={() => setShowAuthModal(true)}
+         className="flex items-center gap-2 px-4 py-1.5 bg-[#1A1A1A] dark:bg-stone-800 text-white hover:bg-[#333] dark:hover:bg-stone-700 transition-colors rounded-sm text-xs font-bold uppercase tracking-widest shadow-sm"
+       >
+         <User className="w-3.5 h-3.5" />
+         <span>Giriş Yap / Üye Ol</span>
+       </button>
+    </div>
+  );
+}
 
 function NavigationLinks() {
   const location = useLocation();
@@ -53,6 +85,16 @@ function NavigationLinks() {
 }
 
 export default function App() {
+  return (
+    <AuthProvider>
+      <CommentProvider>
+        <AppContent />
+      </CommentProvider>
+    </AuthProvider>
+  );
+}
+
+function AppContent() {
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
@@ -85,6 +127,7 @@ export default function App() {
           </Link>
           <div className="hidden md:flex gap-8 text-sm font-medium uppercase tracking-widest h-full items-center pt-2">
             <NavigationLinks />
+            <UserMenu />
           </div>
           <div className="flex items-center gap-6">
             <button 
@@ -122,6 +165,7 @@ export default function App() {
             <span className="opacity-70 dark:opacity-50">Sinan Atlas v1.0.4</span>
           </div>
         </footer>
+        <AuthModal />
       </div>
     </BrowserRouter>
   );

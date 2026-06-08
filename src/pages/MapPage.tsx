@@ -1,22 +1,51 @@
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Loader2, AlertCircle, Phone, MapPin, Clock, Calendar, Youtube, Navigation } from 'lucide-react';
+import { Loader2, AlertCircle, Youtube, Navigation } from 'lucide-react';
 import { Work } from '../types';
 import { fetchWorks } from '../services/dataService';
+import WorkOverlay from '../components/WorkOverlay';
 
-// Fix for default marker icons in Leaflet with Vite
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+// Custom Marker Colors
+const getMarkerColor = (type: string) => {
+  const t = type.toLowerCase();
+  if (t.includes('cami')) return '#B7410E'; // Kiremit Kırmızısı
+  if (t.includes('külliye')) return '#D4A017'; // Hardal
+  if (t.includes('medrese')) return '#1E3A8A'; // Lacivert
+  if (t.includes('hamam')) return '#14B8A6'; // Turkuaz
+  if (t.includes('türbe')) return '#10B981'; // Zümrüt Yeşili
+  return '#6B8E23'; // Haki Yeşili
+};
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+interface LegendItem {
+  type: string;
+  color: string;
+}
 
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+const legendItems: LegendItem[] = [
+  { type: 'Cami', color: '#B7410E' },
+  { type: 'Külliye', color: '#D4A017' },
+  { type: 'Medrese', color: '#1E3A8A' },
+  { type: 'Hamam', color: '#14B8A6' },
+  { type: 'Türbe', color: '#10B981' },
+  { type: 'Diğer', color: '#6B8E23' }
+];
+
+const getMarkerIcon = (type: string) => {
+  const color = getMarkerColor(type);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" width="32" height="40" style="filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.4));">
+    <path fill="${color}" d="M16 0C7.163 0 0 7.164 0 16c0 12 16 24 16 24s16-12 16-24C32 7.164 24.837 0 16 0zm0 22a6 6 0 110-12 6 6 0 010 12z"/>
+    <circle fill="#FFFFFF" cx="16" cy="16" r="6"/>
+  </svg>`;
+  
+  return L.divIcon({
+    html: svg,
+    className: 'custom-map-icon',
+    iconSize: [28, 35],
+    iconAnchor: [14, 35],
+    popupAnchor: [0, -35]
+  });
+};
 
 function MapFlyTo({ coords }: { coords: [number, number] | null }) {
   const map = useMap();
@@ -34,42 +63,63 @@ export default function MapPage() {
   const [error, setError] = useState<string | null>(null);
   const [progressMsg, setProgressMsg] = useState('Veriler yükleniyor...');
   const [activeMarkerId, setActiveMarkerId] = useState<number | null>(null);
+  
+  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
+  const [routingLoading, setRoutingLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
-    
     async function loadData() {
       try {
         setLoading(true);
         setError(null);
-        
         const data = await fetchWorks((current, total) => {
-          if (isMounted) {
-            setProgressMsg(`Koordinatlar çözümleniyor... (${current}/${total})`);
-          }
+          if (isMounted) setProgressMsg(`Koordinatlar çözümleniyor... (${current}/${total})`);
         });
-        
         if (isMounted) {
           setWorks(data);
           setLoading(false);
         }
       } catch (err) {
         if (isMounted) {
-          console.error(err);
           setError('Veriler yüklenirken bir hata oluştu.');
           setLoading(false);
         }
       }
     }
-
     loadData();
-    
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
 
-  // Center towards Turkey/Balkans
+  const handleRouteRequest = () => {
+    if (activeMarkerId === null) return;
+    const work = works[activeMarkerId];
+    if (!work || !work.lat || !work.lng) return;
+
+    setRoutingLoading(true);
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        setUserCoords([latitude, longitude]);
+        setRoutingLoading(false);
+        
+        // Open Google Maps directions
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
+        window.open(url, '_blank');
+      }, () => {
+        // Fallback if permission denied
+        setRoutingLoading(false);
+        alert('Konum alınamadı. Standart harita linki açılıyor.');
+        if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
+          window.open(work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`, '_blank');
+        }
+      });
+    } else {
+      setRoutingLoading(false);
+      alert('Tarayıcınız konum özelliğini desteklemiyor.');
+    }
+  };
+
   const generalCenter: [number, number] = [40.0, 31.0];
 
   return (
@@ -90,21 +140,11 @@ export default function MapPage() {
                <p className={`text-[10px] uppercase font-bold mb-1 ${activeMarkerId === idx ? 'opacity-70 dark:opacity-90' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#991B1B] dark:group-hover:text-red-400'}`}>
                  {work.district} / {work.year || 'Bilinmiyor'}
                </p>
-               <h3 className="font-serif text-lg leading-tight">{work.name}</h3>
+               <h3 className="font-serif text-lg leading-tight line-clamp-2">{work.name}</h3>
                <div className="flex justify-between items-center mt-2 px-0">
-                 <p className={`text-xs ${activeMarkerId === idx ? 'opacity-80' : 'text-gray-500 dark:text-gray-400'}`}>{work.type}</p>
-                 
-                 <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    {work.youtube && work.youtube !== 'İzle' && work.youtube !== 'Yok' && (
-                       <a href={work.youtube.startsWith('http') ? work.youtube : `https://${work.youtube}`} target="_blank" rel="noopener noreferrer" className={`p-1 rounded-sm ${activeMarkerId === idx ? 'hover:bg-black/20 text-white' : 'hover:bg-gray-200 dark:hover:bg-stone-700 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400'}`}>
-                         <Youtube className="w-4 h-4" />
-                       </a>
-                    )}
-                    {work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok' && (
-                       <a href={work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`} target="_blank" rel="noopener noreferrer" className={`p-1 rounded-sm ${activeMarkerId === idx ? 'hover:bg-black/20 text-white' : 'hover:bg-gray-200 dark:hover:bg-stone-700 text-gray-500 dark:text-gray-400 hover:text-[#991B1B] dark:hover:text-red-400'}`}>
-                         <Navigation className="w-4 h-4" />
-                       </a>
-                    )}
+                 <div className="flex items-center gap-1.5">
+                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getMarkerColor(work.type) }}></div>
+                   <p className={`text-xs ${activeMarkerId === idx ? 'opacity-80' : 'text-gray-500 dark:text-gray-400'}`}>{work.type}</p>
                  </div>
                </div>
              </div>
@@ -114,6 +154,20 @@ export default function MapPage() {
 
       {/* Map Content */}
       <section className="flex-1 relative bg-[#DBEAFE] dark:bg-blue-950 order-1 md:order-2 h-[60vh] md:h-auto transition-colors duration-200">
+        
+        {/* HARİTA LEJANTI */}
+        <div className="absolute top-4 right-4 z-[400] bg-white/90 dark:bg-stone-900/90 backdrop-blur border border-gray-200 dark:border-stone-700 p-3 rounded-sm shadow-md hidden sm:block">
+          <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2 border-b border-gray-200 dark:border-stone-700 pb-1">Yapı Türleri</h4>
+          <div className="flex flex-col gap-1.5">
+            {legendItems.map(item => (
+              <div key={item.type} className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: item.color }}></span>
+                <span className="text-xs text-gray-700 dark:text-stone-300 font-medium">{item.type}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {loading && (
           <div className="absolute inset-0 z-[1000] bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm flex flex-col items-center justify-center p-4">
             <div className="bg-white dark:bg-stone-900 p-6 border border-[#D1D5DB] dark:border-stone-700 rounded-sm shadow-xl flex flex-col items-center space-y-4 max-w-sm w-full text-center transition-colors">
@@ -141,6 +195,16 @@ export default function MapPage() {
           </div>
         )}
 
+        {activeMarkerId !== null && works[activeMarkerId] && (
+          <WorkOverlay 
+            work={works[activeMarkerId]}
+            onClose={() => setActiveMarkerId(null)}
+            userCoords={userCoords}
+            routingLoading={routingLoading}
+            onRouteRequest={handleRouteRequest}
+          />
+        )}
+
         <MapContainer 
           center={generalCenter} 
           zoom={6} 
@@ -159,65 +223,16 @@ export default function MapPage() {
               <Marker 
                 key={idx} 
                 position={[work.lat, work.lng]}
+                icon={getMarkerIcon(work.type)}
                 eventHandlers={{
                   click: () => setActiveMarkerId(idx)
                 }}
               >
                 <Tooltip direction="top" offset={[0, -40]} opacity={1} className="geometric-tooltip">
                   <div className="bg-gray-900 text-white text-[10px] px-3 py-1.5 whitespace-nowrap shadow-xl border-none">
-                    {work.name} | {work.district.split('/')[0].trim()}
+                    <span className="font-bold border-r border-white/30 pr-2 mr-2">{work.district.split('/')[0].trim()}</span>{work.name} 
                   </div>
                 </Tooltip>
-                
-                <Popup className="geometric-popup">
-                  <div className="bg-white dark:bg-stone-900 p-4 w-64 border-t-0 font-sans rounded-lg transition-colors">
-                    <h4 className="font-serif font-bold text-[#1A1A1A] dark:text-stone-100 border-b border-[#D1D5DB] dark:border-stone-700 pb-2 mb-2 text-base transition-colors">
-                      {work.name}
-                    </h4>
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-gray-400 dark:text-stone-500 uppercase font-bold">Adres</p>
-                      <p className="text-xs text-gray-700 dark:text-stone-300">{(work.address && work.address.toLowerCase() !== 'bilgi yok' && work.address.toLowerCase() !== 'yok') ? work.address : ''} {work.district}</p>
-                      
-                      {(work.phone && work.phone.toLowerCase() !== 'bilgi yok' && work.phone.toLowerCase() !== 'yok') && (
-                        <>
-                          <p className="text-[10px] text-gray-400 dark:text-stone-500 uppercase font-bold mt-2">İletişim</p>
-                          <p className="text-xs text-gray-700 dark:text-stone-300">{work.phone}</p>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-[#D1D5DB] dark:border-stone-700 flex gap-2">
-                       {work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok' && (
-                         <a 
-                           href={work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`} 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           className="flex-1 flex justify-center items-center gap-1.5 bg-[#F9F8F6] dark:bg-stone-800 hover:bg-[#E5E7EB] dark:hover:bg-stone-700 border border-[#D1D5DB] dark:border-stone-600 text-[#1A1A1A] dark:text-stone-200 text-[10px] uppercase font-bold py-1.5 rounded-sm transition-colors"
-                         >
-                           <Navigation className="w-3 h-3 text-[#991B1B] dark:text-red-400" />
-                           Yol Tarifi
-                         </a>
-                       )}
-                       {work.youtube && work.youtube !== 'İzle' && work.youtube !== 'Yok' && (
-                         <a 
-                           href={work.youtube.startsWith('http') ? work.youtube : `https://${work.youtube}`} 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           className="flex-1 flex justify-center items-center gap-1.5 bg-[#F9F8F6] dark:bg-stone-800 hover:bg-[#E5E7EB] dark:hover:bg-stone-700 border border-[#D1D5DB] dark:border-stone-600 text-[#1A1A1A] dark:text-stone-200 text-[10px] uppercase font-bold py-1.5 rounded-sm transition-colors"
-                         >
-                           <Youtube className="w-3 h-3 text-red-600 dark:text-red-500" />
-                           Video
-                         </a>
-                       )}
-                    </div>
-                    
-                    <div className="mt-3 flex justify-end">
-                      <span className="text-[10px] text-gray-400 dark:text-stone-500 font-mono tracking-tighter">
-                        {work.lat.toFixed(4)}° N, {work.lng.toFixed(4)}° E
-                      </span>
-                    </div>
-                  </div>
-                </Popup>
               </Marker>
             ) : null
           ))}
