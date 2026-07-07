@@ -12,7 +12,19 @@ const getCategoryColor = (type: string) => {
   if (t.includes('medrese')) return '#1E3A8A'; // Lacivert
   if (t.includes('hamam')) return '#14B8A6'; // Turkuaz
   if (t.includes('türbe')) return '#10B981'; // Zümrüt Yeşili
+  if (t.includes('köprü')) return '#78716C'; // Taş/Gri
   return '#6B8E23'; // Haki Yeşili
+};
+
+const getIconPath = (type: string) => {
+  const t = type.toLowerCase();
+  if (t.includes('cami')) return `<path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l8 5H4z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (t.includes('külliye')) return `<path d="M4 22v-8h16v8M8 14v-6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v6M12 2v4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (t.includes('medrese')) return `<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (t.includes('hamam')) return `<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (t.includes('türbe')) return `<path d="M12 2v20M8 22h8M12 2a4 4 0 0 0-4 4v16M12 2a4 4 0 0 1 4 4v16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (t.includes('köprü')) return `<path d="M2 20h20M5 20v-6a7 7 0 0 1 14 0v6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  return `<path d="M12 2L2 22h20L12 2z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
 };
 
 export default function WorksPage() {
@@ -66,16 +78,15 @@ export default function WorksPage() {
   return (
     <div className="flex-1 overflow-y-auto bg-[#F9F8F6] dark:bg-stone-900 transition-colors duration-200 relative">
       {selectedWork && (
-        <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="relative w-full max-w-5xl">
-            <WorkOverlay 
-              work={selectedWork}
-              onClose={() => setSelectedWork(null)}
-              userCoords={null}
-              routingLoading={false}
-              onRouteRequest={() => handleRouteRequest(selectedWork)}
-            />
-          </div>
+        <div className="fixed inset-0 z-[2000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-8">
+          <WorkOverlay 
+            work={selectedWork}
+            onClose={() => setSelectedWork(null)}
+            userCoords={null}
+            routingLoading={false}
+            onRouteRequest={() => handleRouteRequest(selectedWork)}
+            commentsOnly={true}
+          />
         </div>
       )}
 
@@ -113,9 +124,13 @@ export default function WorksPage() {
               <div key={idx} className="bg-white dark:bg-stone-800 border border-[#D1D5DB] dark:border-stone-700 rounded-sm shadow-sm hover:shadow-md transition-all p-6 flex flex-col group relative">
                 <div className="flex justify-between items-start mb-4">
                   <span 
-                    className="text-[10px] px-2 py-1 uppercase font-bold text-white rounded-sm shadow-sm"
+                    className="flex items-center gap-1.5 text-[10px] px-2 py-1 uppercase font-bold text-white rounded-sm shadow-sm"
                     style={{ backgroundColor: getCategoryColor(work.type) }}
                   >
+                    <div 
+                      className="w-3 h-3 text-white" 
+                      dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24">${getIconPath(work.type)}</svg>` }}
+                    ></div>
                     {work.type}
                   </span>
                   <span className="text-xs font-mono text-gray-400">

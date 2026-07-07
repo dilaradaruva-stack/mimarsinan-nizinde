@@ -5,36 +5,54 @@ const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWf38Vkg27aMN
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+let globalWorksCache: Work[] | null = null;
+let globalFetchPromise: Promise<Work[]> | null = null;
+
 export async function fetchWorks(onProgress?: (current: number, total: number) => void): Promise<Work[]> {
-  return new Promise((resolve, reject) => {
-    Papa.parse(DATA_URL, {
-      download: true,
-      header: true,
-      complete: async (results) => {
-        const works = results.data
-          .filter((row: any) => row['Mekan Adı'] && row['İlçe / Şehir'])
-          .map((row: any) => ({
-            name: row['Mekan Adı'],
-            type: row['Mekan Türü'],
-            district: row['İlçe / Şehir'],
-            year: row['Açılış Yılı'],
-            address: row['Adres'],
-            phone: row['Telefon'],
-            hours: row['Çalışma Saatleri'],
-            youtube: row['YouTube Videosu'],
-            mapsUrl: row['Yol Tarifi (Harita)']
-          }));
-        
-        try {
-          const geocodedWorks = await geocodeWorks(works, onProgress);
-          resolve(geocodedWorks);
-        } catch (error) {
-          reject(error);
-        }
-      },
-      error: reject
+  if (globalWorksCache) {
+    return globalWorksCache;
+  }
+  
+  if (!globalFetchPromise) {
+    globalFetchPromise = new Promise((resolve, reject) => {
+      Papa.parse(DATA_URL, {
+        download: true,
+        header: true,
+        complete: async (results) => {
+          const works = results.data
+            .filter((row: any) => row['Mekan Adı'] && row['İlçe / Şehir'])
+            .map((row: any) => ({
+              name: row['Mekan Adı'],
+              type: row['Mekan Türü'],
+              district: row['İlçe / Şehir'],
+              year: row['Açılış Yılı'],
+              address: row['Adres'],
+              phone: row['Telefon'],
+              hours: row['Çalışma Saatleri'],
+              youtube: row['YouTube Videosu'],
+              mapsUrl: row['Yol Tarifi (Harita)']
+            }));
+          
+          try {
+            const geocodedWorks = await geocodeWorks(works, onProgress);
+            resolve(geocodedWorks);
+          } catch (error) {
+            reject(error);
+          }
+        },
+        error: reject
+      });
     });
-  });
+  }
+
+  try {
+    const result = await globalFetchPromise;
+    globalWorksCache = result;
+    return result;
+  } catch (err) {
+    globalFetchPromise = null;
+    throw err;
+  }
 }
 
 async function geocodeWorks(works: Work[], onProgress?: (current: number, total: number) => void): Promise<Work[]> {
