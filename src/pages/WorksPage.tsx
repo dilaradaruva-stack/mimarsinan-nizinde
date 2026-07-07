@@ -4,6 +4,7 @@ import { Work } from '../types';
 import { Loader2, Search, MapPin, Youtube, Navigation, Phone, Clock, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import WorkOverlay from '../components/WorkOverlay';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const getCategoryColor = (type: string) => {
   const t = type.toLowerCase();
@@ -32,6 +33,7 @@ export default function WorksPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWork, setSelectedWork] = useState<Work | null>(null);
+  const { t, translateWorkField } = useLanguage();
 
   useEffect(() => {
     fetchWorks()
@@ -70,9 +72,9 @@ export default function WorksPage() {
   };
 
   const filteredWorks = works.filter(work => 
-    work.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    translateWorkField(work.name, 'name').toLowerCase().includes(searchTerm.toLowerCase()) || 
     work.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    work.type.toLowerCase().includes(searchTerm.toLowerCase())
+    translateWorkField(work.type, 'type').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -85,7 +87,6 @@ export default function WorksPage() {
             userCoords={null}
             routingLoading={false}
             onRouteRequest={() => handleRouteRequest(selectedWork)}
-            commentsOnly={true}
           />
         </div>
       )}
@@ -95,17 +96,17 @@ export default function WorksPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
           <div>
             <h1 className="text-4xl font-serif font-bold tracking-tight text-[#1A1A1A] dark:text-white leading-tight mb-2">
-              Tüm Eserler
+              {t('works.explore') || 'Tüm Eserler'}
             </h1>
             <p className="text-gray-500 dark:text-stone-400">
-              Mimar Sinan'ın günümüze ulaşan ustalık eserlerini inceleyin.
+              {t('works.subtitle') || "Mimar Sinan'ın günümüze ulaşan ustalık eserlerini inceleyin."}
             </p>
           </div>
           <div className="relative max-w-sm w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text"
-              placeholder="Eser adı, türü veya bölge ara..."
+              placeholder={t('works.search_placeholder') || "Eser adı, türü veya bölge ara..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white dark:bg-stone-800 border border-[#D1D5DB] dark:border-stone-700 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#991B1B] dark:text-stone-200 transition-colors placeholder:text-gray-400"
@@ -116,7 +117,7 @@ export default function WorksPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Loader2 className="w-10 h-10 text-[#991B1B] animate-spin mb-4" />
-            <p className="text-sm font-bold uppercase tracking-widest text-[#991B1B]">Eserler Yükleniyor...</p>
+            <p className="text-sm font-bold uppercase tracking-widest text-[#991B1B]">{t('map.loading') || 'Eserler Yükleniyor...'}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -131,15 +132,15 @@ export default function WorksPage() {
                       className="w-3 h-3 text-white" 
                       dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24">${getIconPath(work.type)}</svg>` }}
                     ></div>
-                    {work.type}
+                    {translateWorkField(work.type, 'type')}
                   </span>
                   <span className="text-xs font-mono text-gray-400">
-                    {work.year || 'Bilinmiyor'}
+                    {work.year || t('map.unknown_year') || 'Bilinmiyor'}
                   </span>
                 </div>
                 
                 <h3 className="font-serif text-xl font-bold mb-2 text-[#1A1A1A] dark:text-stone-100 group-hover:text-[#991B1B] dark:group-hover:text-red-400 transition-colors line-clamp-2">
-                  {work.name}
+                  {translateWorkField(work.name, 'name')}
                 </h3>
                 
                 <div className="flex flex-col gap-2 mb-6 flex-1">
@@ -174,7 +175,7 @@ export default function WorksPage() {
                         className="flex-1 flex justify-center items-center gap-1.5 bg-[#F9F8F6] dark:bg-stone-900 hover:bg-gray-100 dark:hover:bg-stone-700 border border-gray-200 dark:border-stone-600 text-[#1A1A1A] dark:text-stone-300 text-[10px] uppercase font-bold py-2 rounded-sm transition-colors"
                       >
                         <Navigation className="w-3 h-3 text-[#991B1B] dark:text-red-400" />
-                        Yol Tarifi
+                        {t('overlay.start_nav')}
                       </a>
                     )}
                     {work.youtube && work.youtube !== 'İzle' && work.youtube !== 'Yok' && (
@@ -192,8 +193,8 @@ export default function WorksPage() {
                       onClick={() => setSelectedWork(work)}
                       className="flex-[1.5] flex justify-center items-center gap-1.5 bg-[#F9F8F6] dark:bg-stone-900 hover:bg-gray-100 dark:hover:bg-stone-700 border border-gray-200 dark:border-stone-600 text-[#1A1A1A] dark:text-stone-300 text-[10px] uppercase font-bold py-2 rounded-sm transition-colors"
                     >
-                      <MessageCircle className="w-3 h-3 text-blue-600 dark:text-blue-500" />
-                      Yorumlar
+                      <Search className="w-3 h-3 text-blue-600 dark:text-blue-500" />
+                      {t('works.inspect')}
                     </button>
                 </div>
               </div>

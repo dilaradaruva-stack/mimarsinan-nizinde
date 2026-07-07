@@ -5,12 +5,14 @@ import MapPage from './pages/MapPage';
 import AboutPage from './pages/AboutPage';
 import WorksPage from './pages/WorksPage';
 import React, { useState, useEffect } from 'react';
-import { CommentProvider } from './context/CommentContext';
 import { fetchWorks } from './services/dataService';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 function NavigationLinks({ onClick }: { onClick?: () => void }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const isActive = (path: string) => location.pathname === path;
 
   const handleContactClick = (e: React.MouseEvent) => {
@@ -31,28 +33,28 @@ function NavigationLinks({ onClick }: { onClick?: () => void }) {
         onClick={onClick}
         className={`border-b-2 py-2 md:py-0 transition-colors ${isActive('/map') ? 'text-[#991B1B] dark:text-red-400 border-[#991B1B] dark:border-red-400' : 'text-[#1A1A1A] dark:text-stone-300 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 opacity-70 hover:opacity-100'}`}
       >
-        Harita
+        {t('nav.map')}
       </Link>
       <Link 
         to="/works" 
         onClick={onClick}
         className={`border-b-2 py-2 md:py-0 transition-colors ${isActive('/works') ? 'text-[#991B1B] dark:text-red-400 border-[#991B1B] dark:border-red-400' : 'text-[#1A1A1A] dark:text-stone-300 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 opacity-70 hover:opacity-100'}`}
       >
-        Eserler
+        {t('nav.works')}
       </Link>
       <Link 
         to="/about" 
         onClick={onClick}
         className={`border-b-2 py-2 md:py-0 transition-colors ${isActive('/about') ? 'text-[#991B1B] dark:text-red-400 border-[#991B1B] dark:border-red-400' : 'text-[#1A1A1A] dark:text-stone-300 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 opacity-70 hover:opacity-100'}`}
       >
-        Hakkında
+        {t('nav.about')}
       </Link>
       <a 
         href="/#iletisim"
         onClick={handleContactClick}
         className={`border-b-2 py-2 md:py-0 transition-colors text-[#1A1A1A] dark:text-stone-300 border-transparent hover:border-[#991B1B] dark:hover:border-red-400 opacity-70 hover:opacity-100 cursor-pointer`}
       >
-        İletişim
+        {t('nav.contact')}
       </a>
     </>
   );
@@ -65,13 +67,15 @@ export default function App() {
   }, []);
 
   return (
-    <CommentProvider>
+    <LanguageProvider>
       <AppContent />
-    </CommentProvider>
+      <LanguageSwitcher />
+    </LanguageProvider>
   );
 }
 
 function AppContent() {
+  const { t } = useLanguage();
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('theme');
@@ -118,7 +122,7 @@ function AppContent() {
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <div className="hidden md:flex items-center gap-3">
-              <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">SİSTEM AKTİF</span>
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{t('app.system_active')}</span>
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
             </div>
             {/* Hamburger Menu Toggle */}
@@ -148,7 +152,7 @@ function AppContent() {
             <NavigationLinks onClick={() => setIsMobileMenuOpen(false)} />
           </div>
           <div className="mt-auto flex items-center justify-between border-t border-[#D1D5DB] dark:border-stone-700 pt-6">
-            <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">SİSTEM AKTİF</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{t('app.system_active')}</span>
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
           </div>
         </div>
@@ -166,11 +170,11 @@ function AppContent() {
         {/* Footer Status Bar */}
         <footer className="h-10 shrink-0 bg-[#1A1A1A] dark:bg-black text-white text-[10px] hidden md:flex items-center justify-between px-10 tracking-widest uppercase transition-colors duration-200">
           <div className="flex gap-6">
-            <span className="opacity-70 dark:opacity-50">Veri Kaynağı: Google Sheets</span>
-            <span className="opacity-70 dark:opacity-50">Geocoding: OpenStreetMap Nominatim</span>
+            <span className="opacity-70 dark:opacity-50">{t('app.data_source')}</span>
+            <span className="opacity-70 dark:opacity-50">{t('app.geocoding')}</span>
           </div>
           <div className="flex gap-6 items-center">
-            <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-500 rounded-full opacity-70"></span> <span className="opacity-70 dark:opacity-50">GPS Stabil</span></span>
+            <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-500 rounded-full opacity-70"></span> <span className="opacity-70 dark:opacity-50">{t('app.gps_stable')}</span></span>
             <span className="opacity-70 dark:opacity-50">Sinan Atlas v1.0.4</span>
           </div>
         </footer>
