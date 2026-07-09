@@ -186,7 +186,7 @@ export default function WorksPage() {
                         className="flex-1 flex justify-center items-center gap-1.5 bg-[#F9F8F6] dark:bg-stone-900 hover:bg-gray-100 dark:hover:bg-stone-700 border border-gray-200 dark:border-stone-600 text-[#1A1A1A] dark:text-stone-300 text-[10px] uppercase font-bold py-2 rounded-sm transition-colors"
                       >
                         <Youtube className="w-3 h-3 text-red-600 dark:text-red-500" />
-                        Video
+                        {t('works.video')}
                       </a>
                     )}
                     <button 

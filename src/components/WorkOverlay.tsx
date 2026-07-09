@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Work } from '../types';
-import { X, Navigation, Youtube, MapPin, Loader2, Phone, Clock, Share2 } from 'lucide-react';
+import { X, Navigation, Youtube, MapPin, Loader2, Phone, Clock, Share2, Image as ImageIcon } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { getYoutubeEmbedUrl } from '../utils/youtube';
+import { getWikipediaImage } from '../services/wikipediaService';
 
 interface Props {
   work: Work;
@@ -13,7 +15,23 @@ interface Props {
 
 export default function WorkOverlay({ work, onClose, userCoords, routingLoading, onRouteRequest }: Props) {
   const [isSharing, setIsSharing] = useState(false);
+  const [wikiImage, setWikiImage] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
   const { t, translateWorkField } = useLanguage();
+
+  useEffect(() => {
+    let isMounted = true;
+    setImageLoading(true);
+    getWikipediaImage(work.name).then(url => {
+      if (isMounted) {
+        setWikiImage(url);
+        setImageLoading(false);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [work.name]);
+
+  const embedUrl = getYoutubeEmbedUrl(work.youtube || '');
 
   return (
     <>
@@ -27,8 +45,53 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
           <X className="w-6 h-6" />
         </button>
 
-        {/* SOL PANEL (Detaylar) */}
-          <div className="bg-white dark:bg-stone-900 w-full md:w-3/4 flex flex-col overflow-hidden rounded-xl shadow-2xl border border-gray-200 dark:border-stone-700">
+        {/* SOL PANEL (Görsel ve Video) */}
+        <div className="w-full md:w-1/2 flex flex-row md:flex-col gap-2 md:gap-4 shrink-0">
+          {/* Görsel Alanı */}
+          <div className="w-1/2 md:w-full h-24 sm:h-32 md:h-2/3 bg-gray-100 dark:bg-stone-800 rounded-xl overflow-hidden shadow-lg border border-gray-200 dark:border-stone-700 relative group flex items-center justify-center">
+            {imageLoading ? (
+              <Loader2 className="w-6 h-6 md:w-8 md:h-8 text-gray-400 animate-spin" />
+            ) : wikiImage ? (
+              <img 
+                src={wikiImage} 
+                alt={work.name} 
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                loading="lazy"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  setWikiImage(null);
+                }}
+              />
+            ) : (
+              <div className="text-center text-gray-400 dark:text-stone-500">
+                <ImageIcon className="w-8 h-8 md:w-12 md:h-12 mx-auto mb-2 md:mb-3 opacity-30" />
+                <p className="text-[10px] md:text-xs uppercase font-bold tracking-widest">{t('overlay.no_image') || 'Görsel Bulunamadı'}</p>
+              </div>
+            )}
+          </div>
+
+          {/* YouTube Videosu */}
+          {embedUrl ? (
+            <div className="w-1/2 md:w-full h-24 sm:h-32 md:h-auto aspect-auto md:aspect-video rounded-xl overflow-hidden bg-black relative shadow-lg border border-gray-200 dark:border-stone-700">
+              <iframe 
+                src={embedUrl}
+                title={`${work.name} Video`}
+                className="absolute inset-0 w-full h-full"
+                allowFullScreen
+              ></iframe>
+            </div>
+          ) : (
+             <div className="w-1/2 md:w-full h-24 sm:h-32 md:h-auto aspect-auto md:aspect-video rounded-xl bg-gray-50 dark:bg-stone-800/50 flex items-center justify-center border border-gray-200 dark:border-stone-700 shadow-sm">
+               <div className="text-center text-gray-400">
+                 <Youtube className="w-8 h-8 md:w-10 md:h-10 mx-auto mb-2 md:mb-3 opacity-50" />
+                 <p className="text-[10px] md:text-xs uppercase font-bold tracking-widest">{t('overlay.no_video') || 'Video Bulunmuyor'}</p>
+               </div>
+             </div>
+          )}
+        </div>
+
+        {/* SAĞ PANEL (Detaylar) */}
+          <div className="bg-white dark:bg-stone-900 w-full md:w-1/2 flex flex-col overflow-hidden rounded-xl shadow-2xl border border-gray-200 dark:border-stone-700">
             <div className="sticky top-0 bg-white/90 dark:bg-stone-900/90 backdrop-blur border-b border-gray-200 dark:border-stone-700 p-6 flex justify-between items-start z-10">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#B7410E] dark:text-[#D4A017]">{translateWorkField(work.type, 'type')}</span>
@@ -64,33 +127,14 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
                {t('overlay.history_text') ? t('overlay.history_text').replace('{district}', work.district).replace('{type}', translateWorkField(work.type, 'type').toLowerCase()) : `Bu eser Mimar Sinan'ın ${work.district} bölgesindeki önemli ${translateWorkField(work.type, 'type').toLowerCase()} yapılarından biridir.`}
             </div>
 
-            {/* Youtube Video Embed (if available) or generic placeholder */}
-            {work.youtube && work.youtube !== 'İzle' && work.youtube !== 'Yok' ? (
-              <div className="aspect-video w-full rounded-lg overflow-hidden bg-black relative shadow-sm">
-                <iframe 
-                  src={work.youtube.replace('watch?v=', 'embed/').split('&')[0]} 
-                  title={`${work.name} Video`}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                ></iframe>
-              </div>
-            ) : (
-               <div className="aspect-video w-full rounded-lg bg-gray-50 dark:bg-stone-800/50 flex items-center justify-center border border-gray-200 dark:border-stone-700">
-                 <div className="text-center text-gray-400">
-                   <Youtube className="w-10 h-10 mx-auto mb-3 opacity-50" />
-                   <p className="text-xs uppercase font-bold tracking-widest">Video Bulunmuyor</p>
-                 </div>
-               </div>
-            )}
-
-            <div className="flex gap-2 pt-6 border-t border-gray-200 dark:border-stone-700">
+            <div className="flex gap-2 pt-6 border-t border-gray-200 dark:border-stone-700 mt-auto">
                <button 
                  onClick={onRouteRequest}
                  disabled={routingLoading}
                  className="flex-[2] flex items-center justify-center gap-2 bg-[#991B1B] hover:bg-[#7f1616] text-white py-4 px-4 rounded-lg font-bold uppercase text-xs tracking-widest transition-colors shadow-sm disabled:opacity-70"
                >
                  {routingLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
-                 Yol Tarifi Başlat
+                 {t('overlay.start_nav')}
                </button>
                <button 
                  onClick={async () => {
@@ -115,14 +159,14 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
                      }
                    } else {
                      navigator.clipboard.writeText(window.location.href);
-                     alert('Bağlantı kopyalandı!');
+                     alert(t('overlay.link_copied'));
                    }
                  }}
                  disabled={isSharing}
                  className="flex-[1] flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-gray-700 dark:text-stone-300 py-4 px-4 rounded-lg font-bold uppercase text-xs tracking-widest transition-colors shadow-sm disabled:opacity-70"
                >
                  {isSharing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Share2 className="w-5 h-5" />}
-                 Paylaş
+                 {t('overlay.share')}
                </button>
             </div>
           </div>

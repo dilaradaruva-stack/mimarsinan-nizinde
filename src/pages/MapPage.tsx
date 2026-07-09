@@ -102,7 +102,7 @@ export default function MapPage() {
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [progressMsg, setProgressMsg] = useState('Veriler yükleniyor...');
+  const [progressMsg, setProgressMsg] = useState(t('map.loading') || 'Veriler yükleniyor...');
   const [activeMarkerId, setActiveMarkerId] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(() => {
     return (location.state as any)?.filter || null;
@@ -119,7 +119,7 @@ export default function MapPage() {
         setLoading(true);
         setError(null);
         const data = await fetchWorks((current, total) => {
-          if (isMounted) setProgressMsg(`Koordinatlar çözümleniyor... (${current}/${total})`);
+          if (isMounted) setProgressMsg(t('map.resolving_coords').replace('{current}', current.toString()).replace('{total}', total.toString()));
         });
         if (isMounted) {
           setWorks(data);
@@ -127,7 +127,7 @@ export default function MapPage() {
         }
       } catch (err) {
         if (isMounted) {
-          setError('Veriler yüklenirken bir hata oluştu.');
+          setError(t('map.loading_error') || 'Veriler yüklenirken bir hata oluştu.');
           setLoading(false);
         }
       }
@@ -154,14 +154,14 @@ export default function MapPage() {
       }, () => {
         // Fallback if permission denied
         setRoutingLoading(false);
-        alert('Konum alınamadı. Standart harita linki açılıyor.');
+        alert(t('map.location_failed') || 'Konum alınamadı. Standart harita linki açılıyor.');
         if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
           window.open(work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`, '_blank');
         }
       });
     } else {
       setRoutingLoading(false);
-      alert('Tarayıcınız konum özelliğini desteklemiyor.');
+      alert(t('map.no_geolocation') || 'Tarayıcınız konum özelliğini desteklemiyor.');
     }
   };
 
@@ -242,7 +242,7 @@ export default function MapPage() {
               className={`flex items-center gap-2 w-full text-left p-1.5 rounded-md transition-colors ${activeFilter === null ? 'bg-gray-100 dark:bg-stone-800 ring-1 ring-gray-300 dark:ring-stone-600' : 'hover:bg-gray-50 dark:hover:bg-stone-800/50'}`}
             >
               <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md shadow-sm flex items-center justify-center bg-gray-600 shrink-0">
-                <span className="text-white text-[10px] font-bold">ALL</span>
+                <span className="text-white text-[10px] font-bold">{t('map.all_short')}</span>
               </div>
               <span className={`text-[10px] sm:text-xs font-medium ${activeFilter === null ? 'text-black dark:text-white font-bold' : 'text-gray-700 dark:text-stone-300'}`}>{t('map.filter_all')}</span>
             </button>

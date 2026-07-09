@@ -104,7 +104,7 @@ function AppContent() {
         <nav className="h-20 border-b border-[#D1D5DB] dark:border-stone-700 shrink-0 flex items-center justify-between px-6 md:px-10 bg-white dark:bg-stone-950 z-30 transition-colors duration-200 relative">
           <Link to="/" className="flex items-center gap-4 group z-40">
             <div className="w-10 h-10 bg-white border border-[#991B1B] dark:border-red-700 rounded-sm flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 p-0.5">
-               <img src="https://i.imgur.com/ZVuvRqC.jpeg" alt="Mimar Sinan Logo" className="w-full h-full object-cover" />
+               <img src="https://i.imgur.com/ZVuvRqC.jpeg" alt="Mimar Sinan Logo" className="w-full h-full object-cover" loading="lazy" />
             </div>
             <span className="text-xl font-serif font-bold tracking-tight uppercase text-[#991B1B] dark:text-red-500">Mimar Sinan'ın İzinde</span>
           </Link>

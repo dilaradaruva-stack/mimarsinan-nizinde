@@ -23,7 +23,8 @@ export default function AboutPage() {
                src="https://i.imgur.com/JW14UVC.jpeg" 
                alt="Mimar Sinan'ın İzinde" 
                className="w-full h-auto rounded-sm object-cover border border-[#D1D5DB] dark:border-stone-700 shadow-sm sepia-[.3] dark:sepia-[.2] transition-colors"
-                referrerPolicy="no-referrer"
+               referrerPolicy="no-referrer"
+               loading="lazy"
              />
           </div>
           <div className="flex-1 space-y-6">
