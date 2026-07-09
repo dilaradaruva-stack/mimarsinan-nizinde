@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Loader2, AlertCircle, Youtube, Navigation, Filter, X } from 'lucide-react';
+import { Loader2, AlertCircle, Youtube, Navigation, Filter, X, Search } from 'lucide-react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Work } from '../types';
 import { fetchWorks } from '../services/dataService';
@@ -106,6 +106,7 @@ export default function MapPage() {
   const [error, setError] = useState<string | null>(null);
   const [progressMsg, setProgressMsg] = useState(t('map.loading') || 'Veriler yükleniyor...');
   const [activeMarkerId, setActiveMarkerId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(() => {
     return (location.state as any)?.filter || null;
   });
@@ -164,19 +165,33 @@ export default function MapPage() {
   };
 
   const filteredWorks = useMemo(() => {
-    return works.filter(work => {
-      if (!activeFilter) return true;
+    let result = works;
+
+    if (activeFilter) {
       if (activeFilter === 'Diğer Yapılar') {
         const mainTypes = ['cami', 'külliye', 'medrese', 'hamam', 'türbe', 'köprü'];
-        return !mainTypes.some(t => work.type.toLowerCase().includes(t));
-      }
-      if (activeFilter.includes(',')) {
+        result = result.filter(work => !mainTypes.some(t => work.type.toLowerCase().includes(t)));
+      } else if (activeFilter.includes(',')) {
         const filters = activeFilter.split(',').map(f => f.trim().toLowerCase());
-        return filters.some(f => work.type.toLowerCase().includes(f));
+        result = result.filter(work => filters.some(f => work.type.toLowerCase().includes(f)));
+      } else {
+        result = result.filter(work => work.type.toLowerCase().includes(activeFilter.toLowerCase()));
       }
-      return work.type.toLowerCase().includes(activeFilter.toLowerCase());
-    });
-  }, [works, activeFilter]);
+    }
+
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLocaleLowerCase('tr-TR');
+      result = result.filter(work => 
+        translateWorkField(work.name, 'name').toLocaleLowerCase('tr-TR').includes(lowerSearch)
+      );
+    }
+
+    result = [...result].sort((a, b) => 
+      translateWorkField(a.name, 'name').localeCompare(translateWorkField(b.name, 'name'), 'tr-TR')
+    );
+
+    return result;
+  }, [works, activeFilter, searchTerm, translateWorkField]);
 
   const generalCenter: [number, number] = [40.0, 31.0];
 
@@ -186,7 +201,17 @@ export default function MapPage() {
       <aside className="w-full md:w-80 bg-white dark:bg-stone-900 border-r border-[#D1D5DB] dark:border-stone-700 flex flex-col shadow-xl z-20 order-2 md:order-1 h-[40vh] md:h-auto transition-colors duration-200">
         <div className="p-6 border-b border-gray-100 dark:border-stone-700 bg-[#F9F8F6] dark:bg-stone-950 shrink-0 transition-colors">
           <h2 className="text-sm font-bold uppercase tracking-tighter mb-1 dark:text-stone-100">{t('app.title') || 'Mimar Sinan Eserleri'}</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{t('map.works_found').replace('{count}', filteredWorks.length.toString())}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t('map.works_found').replace('{count}', filteredWorks.length.toString())}</p>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder={t('map.search_placeholder') || 'Eser adı ile ara...'}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-stone-900 border border-gray-200 dark:border-stone-700 rounded-md text-sm text-[#1A1A1A] dark:text-stone-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-300 dark:focus:ring-stone-600 transition-colors"
+            />
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {filteredWorks.map((work, idx) => {

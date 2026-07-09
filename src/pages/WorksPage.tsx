@@ -72,10 +72,14 @@ export default function WorksPage() {
   };
 
   const filteredWorks = useMemo(() => {
-    return works.filter(work => 
+    const result = works.filter(work => 
       translateWorkField(work.name, 'name').toLowerCase().includes(searchTerm.toLowerCase()) || 
       work.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
       translateWorkField(work.type, 'type').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    return [...result].sort((a, b) => 
+      translateWorkField(a.name, 'name').localeCompare(translateWorkField(b.name, 'name'), 'tr-TR')
     );
   }, [works, searchTerm, translateWorkField]);
 
