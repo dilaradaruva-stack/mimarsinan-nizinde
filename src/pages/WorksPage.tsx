@@ -49,24 +49,47 @@ export default function WorksPage() {
 
   const handleRouteRequest = (work: Work) => {
     if (work.lat && work.lng) {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition((position) => {
           const { latitude, longitude } = position.coords;
           const url = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
-          window.open(url, '_blank');
+          
+          if (isMobile) {
+            window.location.href = url;
+          } else {
+            window.open(url, '_blank');
+          }
         }, () => {
           if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-            window.open(work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`, '_blank');
+            const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
+            if (isMobile) {
+              window.location.href = fallbackUrl;
+            } else {
+              window.open(fallbackUrl, '_blank');
+            }
           }
         });
       } else {
         if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-          window.open(work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`, '_blank');
+          const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
+          if (isMobile) {
+            window.location.href = fallbackUrl;
+          } else {
+            window.open(fallbackUrl, '_blank');
+          }
         }
       }
     } else {
       if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-        window.open(work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`, '_blank');
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
+        if (isMobile) {
+          window.location.href = fallbackUrl;
+        } else {
+          window.open(fallbackUrl, '_blank');
+        }
       }
     }
   };

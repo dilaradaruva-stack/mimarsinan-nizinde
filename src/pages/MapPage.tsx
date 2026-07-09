@@ -142,6 +142,8 @@ export default function MapPage() {
     if (!work || !work.lat || !work.lng) return;
 
     setRoutingLoading(true);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((position) => {
         const { latitude, longitude } = position.coords;
@@ -150,18 +152,30 @@ export default function MapPage() {
         
         // Open Google Maps directions
         const url = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
-        window.open(url, '_blank');
+        
+        if (isMobile) {
+          window.location.href = url;
+        } else {
+          window.open(url, '_blank');
+        }
       }, () => {
         // Fallback if permission denied
         setRoutingLoading(false);
         alert(t('map.location_failed') || 'Konum alınamadı. Standart harita linki açılıyor.');
         if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-          window.open(work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`, '_blank');
+          const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
+          if (isMobile) window.location.href = fallbackUrl;
+          else window.open(fallbackUrl, '_blank');
         }
       });
     } else {
       setRoutingLoading(false);
       alert(t('map.no_geolocation') || 'Tarayıcınız konum özelliğini desteklemiyor.');
+      if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
+        const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
+        if (isMobile) window.location.href = fallbackUrl;
+        else window.open(fallbackUrl, '_blank');
+      }
     }
   };
 
