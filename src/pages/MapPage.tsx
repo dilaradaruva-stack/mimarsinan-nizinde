@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Loader2, AlertCircle, Youtube, Navigation, Filter, X, Search } from 'lucide-react';
+import { Loader2, AlertCircle, Youtube, Navigation, Filter, X, Search, GripHorizontal } from 'lucide-react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { Work } from '../types';
 import { fetchWorks } from '../services/dataService';
@@ -112,6 +112,36 @@ export default function MapPage() {
   });
   const [showLegend, setShowLegend] = useState(false);
 
+  // Mobile Bottom Sheet States
+  const [sheetHeight, setSheetHeight] = useState(40); // Initial 40vh
+  const [isDraggingSheet, setIsDraggingSheet] = useState(false);
+  const touchStartY = useRef(0);
+  const initialHeight = useRef(40);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+    initialHeight.current = sheetHeight;
+    setIsDraggingSheet(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDraggingSheet) return;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+    const deltaVh = (deltaY / window.innerHeight) * 100;
+    // Moving up (negative deltaY) increases the height of the bottom sheet
+    let newHeight = initialHeight.current - deltaVh;
+    if (newHeight < 15) newHeight = 15;
+    if (newHeight > 85) newHeight = 85;
+    setSheetHeight(newHeight);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDraggingSheet(false);
+    if (sheetHeight > 60) setSheetHeight(85);
+    else if (sheetHeight < 25) setSheetHeight(15);
+    else setSheetHeight(40);
+  };
+
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
@@ -198,8 +228,29 @@ export default function MapPage() {
   return (
     <div className="flex-1 flex overflow-hidden flex-col md:flex-row transition-colors duration-200 relative">
       {/* Sidebar: List of Works */}
-      <aside className="w-full md:w-80 bg-white dark:bg-stone-900 border-r border-[#D1D5DB] dark:border-stone-700 flex flex-col shadow-xl z-20 order-2 md:order-1 h-[40vh] md:h-auto transition-colors duration-200">
-        <div className="p-6 border-b border-gray-100 dark:border-stone-700 bg-[#F9F8F6] dark:bg-stone-950 shrink-0 transition-colors">
+      <aside 
+        className="w-full md:w-80 bg-white dark:bg-stone-900 border-r border-[#D1D5DB] dark:border-stone-700 flex flex-col shadow-xl z-20 order-2 md:order-1 h-[var(--mobile-sheet-height)] md:h-auto transition-colors duration-200"
+        style={{ 
+          '--mobile-sheet-height': `${sheetHeight}%`, 
+          transition: isDraggingSheet ? 'none' : 'height 0.3s ease-out, background-color 0.2s, border-color 0.2s'
+        } as React.CSSProperties}
+      >
+        {/* Mobile Drag Handle */}
+        <div 
+          className="md:hidden flex items-center justify-center pt-3 pb-2 bg-[#F9F8F6] dark:bg-stone-950 cursor-grab active:cursor-grabbing touch-none shrink-0"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={() => {
+            if (sheetHeight <= 25) setSheetHeight(40);
+            else if (sheetHeight <= 60) setSheetHeight(85);
+            else setSheetHeight(15);
+          }}
+        >
+          <div className="w-12 h-1.5 bg-gray-300 dark:bg-stone-700 rounded-full" />
+        </div>
+
+        <div className="p-6 pt-2 md:pt-6 border-b border-gray-100 dark:border-stone-700 bg-[#F9F8F6] dark:bg-stone-950 shrink-0 transition-colors">
           <h2 className="text-sm font-bold uppercase tracking-tighter mb-1 dark:text-stone-100">{t('app.title') || 'Mimar Sinan Eserleri'}</h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t('map.works_found').replace('{count}', filteredWorks.length.toString())}</p>
           <div className="relative">
@@ -219,7 +270,10 @@ export default function MapPage() {
              return (
              <div 
                key={originalIdx}
-               onClick={() => setActiveMarkerId(originalIdx)}
+               onClick={() => {
+                 setActiveMarkerId(originalIdx);
+                 if (window.innerWidth < 768) setSheetHeight(15);
+               }}
                className={`p-6 border-b border-gray-100 dark:border-stone-800 cursor-pointer group transition-colors ${activeMarkerId === originalIdx ? 'bg-[#991B1B] dark:bg-red-800 text-white' : 'hover:bg-[#F9F8F6] dark:hover:bg-stone-800 text-[#1A1A1A] dark:text-stone-200'}`}
              >
                <p className={`text-[10px] uppercase font-bold mb-1 ${activeMarkerId === originalIdx ? 'opacity-70 dark:opacity-90' : 'text-gray-400 dark:text-gray-500 group-hover:text-[#991B1B] dark:group-hover:text-red-400'}`}>
@@ -242,7 +296,7 @@ export default function MapPage() {
       </aside>
 
       {/* Map Content */}
-      <section className="flex-1 relative bg-[#DBEAFE] dark:bg-blue-950 order-1 md:order-2 h-[60vh] md:h-auto transition-colors duration-200">
+      <section className="flex-1 relative bg-[#DBEAFE] dark:bg-blue-950 order-1 md:order-2 transition-colors duration-200 min-h-0">
         
         {/* HARİTA LEJANTI / FİLTRE */}
         {/* Mobile Toggle Button */}
