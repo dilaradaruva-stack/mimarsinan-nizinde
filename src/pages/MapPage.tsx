@@ -139,10 +139,26 @@ export default function MapPage() {
   const handleRouteRequest = () => {
     if (activeMarkerId === null) return;
     const work = works[activeMarkerId];
-    if (!work || !work.lat || !work.lng) return;
+    if (!work || !work.lat || !work.lng) {
+      if (work?.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
+        const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
+        window.open(fallbackUrl, '_blank') || window.location.assign(fallbackUrl);
+      }
+      return;
+    }
 
     setRoutingLoading(true);
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    const openIntent = (url: string) => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
 
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition((position) => {
@@ -150,31 +166,32 @@ export default function MapPage() {
         setUserCoords([latitude, longitude]);
         setRoutingLoading(false);
         
-        // Open Google Maps directions
-        const url = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
+        // Open Google Maps / Apple Maps directions
+        const url = isIOS 
+          ? `https://maps.apple.com/?saddr=${latitude},${longitude}&daddr=${work.lat},${work.lng}&dirflg=d`
+          : `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
         
-        if (isMobile) {
-          window.location.href = url;
-        } else {
-          window.open(url, '_blank');
-        }
-      }, () => {
-        // Fallback if permission denied
+        openIntent(url);
+      }, (error) => {
+        // Fallback if permission denied or timeout
         setRoutingLoading(false);
+        console.warn('Geolocation error:', error);
         alert(t('map.location_failed') || 'Konum alınamadı. Standart harita linki açılıyor.');
         if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
           const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-          if (isMobile) window.location.href = fallbackUrl;
-          else window.open(fallbackUrl, '_blank');
+          openIntent(fallbackUrl);
         }
+      }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       });
     } else {
       setRoutingLoading(false);
       alert(t('map.no_geolocation') || 'Tarayıcınız konum özelliğini desteklemiyor.');
       if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
         const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-        if (isMobile) window.location.href = fallbackUrl;
-        else window.open(fallbackUrl, '_blank');
+        openIntent(fallbackUrl);
       }
     }
   };

@@ -48,48 +48,50 @@ export default function WorksPage() {
   }, []);
 
   const handleRouteRequest = (work: Work) => {
-    if (work.lat && work.lng) {
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          const { latitude, longitude } = position.coords;
-          const url = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
-          
-          if (isMobile) {
-            window.location.href = url;
-          } else {
-            window.open(url, '_blank');
-          }
-        }, () => {
-          if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-            const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-            if (isMobile) {
-              window.location.href = fallbackUrl;
-            } else {
-              window.open(fallbackUrl, '_blank');
-            }
-          }
-        });
-      } else {
+    if (!work.lat || !work.lng) {
+      if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
+        const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
+        window.open(fallbackUrl, '_blank') || window.location.assign(fallbackUrl);
+      }
+      return;
+    }
+
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    const openIntent = (url: string) => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+        
+        const url = isIOS 
+          ? `https://maps.apple.com/?saddr=${latitude},${longitude}&daddr=${work.lat},${work.lng}&dirflg=d`
+          : `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
+        
+        openIntent(url);
+      }, (error) => {
+        console.warn('Geolocation error:', error);
         if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
           const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-          if (isMobile) {
-            window.location.href = fallbackUrl;
-          } else {
-            window.open(fallbackUrl, '_blank');
-          }
+          openIntent(fallbackUrl);
         }
-      }
+      }, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      });
     } else {
       if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-        if (isMobile) {
-          window.location.href = fallbackUrl;
-        } else {
-          window.open(fallbackUrl, '_blank');
-        }
+        openIntent(fallbackUrl);
       }
     }
   };

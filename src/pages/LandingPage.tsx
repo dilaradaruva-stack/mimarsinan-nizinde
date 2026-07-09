@@ -84,7 +84,7 @@ export default function LandingPage() {
               {t('landing.c1.desc')}
             </p>
             <a 
-              href="mailto:ikibeyzabirdilara@outlook.com?subject=Mimar%20Sinan'ın%20İzinde%20-%20Geri%20Bildirim%20ve%20Teşekkür"
+              href="mailto:mimarsinaninizindee@gmail.com?subject=Mimar%20Sinan'ın%20İzinde%20-%20Geri%20Bildirim%20ve%20Teşekkür"
               className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#1A1A1A] hover:bg-[#333333] dark:bg-stone-700 dark:hover:bg-stone-600 text-white font-bold text-sm uppercase tracking-widest rounded-sm transition-colors"
             >
               <Mail className="w-4 h-4" />
@@ -104,7 +104,7 @@ export default function LandingPage() {
               {t('landing.c2.desc')}
             </p>
             <a 
-              href="mailto:ikibeyzabirdilara@outlook.com?subject=Mimar%20Sinan'ın%20İzinde%20-%20Mekan%20Önerisi"
+              href="mailto:mimarsinaninizindee@gmail.com?subject=Mimar%20Sinan'ın%20İzinde%20-%20Mekan%20Önerisi"
               className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#991B1B] hover:bg-[#7f1616] dark:bg-red-700 dark:hover:bg-red-600 text-white font-bold text-sm uppercase tracking-widest rounded-sm transition-colors"
             >
               <Mail className="w-4 h-4" />
