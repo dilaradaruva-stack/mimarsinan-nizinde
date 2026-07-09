@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Moon, Sun, Menu, X } from 'lucide-react';
 import LandingPage from './pages/LandingPage';
 import MapPage from './pages/MapPage';
@@ -98,7 +98,7 @@ function AppContent() {
   }, [isDark]);
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="h-screen bg-[#F9F8F6] dark:bg-stone-900 font-sans text-[#1A1A1A] dark:text-stone-100 overflow-hidden flex flex-col transition-colors duration-200">
         {/* Header Navigation */}
         <nav className="h-20 border-b border-[#D1D5DB] dark:border-stone-700 shrink-0 flex items-center justify-between px-6 md:px-10 bg-white dark:bg-stone-950 z-30 transition-colors duration-200 relative">
@@ -179,6 +179,6 @@ function AppContent() {
           </div>
         </footer>
       </div>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
