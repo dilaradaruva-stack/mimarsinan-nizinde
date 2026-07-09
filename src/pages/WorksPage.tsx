@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { fetchWorks } from '../services/dataService';
 import { Work } from '../types';
 import { Loader2, Search, MapPin, Youtube, Navigation, Phone, Clock, MessageCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import WorkOverlay from '../components/WorkOverlay';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -29,6 +29,8 @@ const getIconPath = (type: string) => {
 };
 
 export default function WorksPage() {
+  const [searchParams] = useSearchParams();
+  const sharedWorkName = searchParams.get('work');
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,13 +41,17 @@ export default function WorksPage() {
     fetchWorks()
       .then(data => {
         setWorks(data);
+        if (sharedWorkName) {
+          const work = data.find(w => w.name === sharedWorkName);
+          if (work) setSelectedWork(work);
+        }
         setLoading(false);
       })
       .catch(error => {
         console.error('Error fetching works:', error);
         setLoading(false);
       });
-  }, []);
+  }, [sharedWorkName]);
 
   const handleRouteRequest = (work: Work) => {
     if (!work.lat || !work.lng) {

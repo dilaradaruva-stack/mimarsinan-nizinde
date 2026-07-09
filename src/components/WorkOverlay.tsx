@@ -154,10 +154,13 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
                  onClick={async () => {
                    if (isSharing) return;
                    
+                  const baseUrl = window.location.href.split('?')[0];
+                  const shareUrl = `${baseUrl}?work=${encodeURIComponent(work.name)}`;
+                  
                    const shareData = {
                      title: work.name,
                      text: `${work.name} - Mimar Sinan Eseri`,
-                     url: window.location.href,
+                     url: shareUrl,
                    };
                    
                    if (navigator.share && navigator.canShare(shareData)) {
@@ -172,7 +175,7 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
                        setIsSharing(false);
                      }
                    } else {
-                     navigator.clipboard.writeText(window.location.href);
+                     navigator.clipboard.writeText(shareUrl);
                      alert(t('overlay.link_copied'));
                    }
                  }}

@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Loader2, AlertCircle, Youtube, Navigation, Filter, X } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Work } from '../types';
 import { fetchWorks } from '../services/dataService';
 import WorkOverlay from '../components/WorkOverlay';
@@ -98,6 +98,8 @@ function MapFlyTo({ coords }: { coords: [number, number] | null }) {
 
 export default function MapPage() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const sharedWorkName = searchParams.get('work');
   const { t, translateWorkField } = useLanguage();
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,6 +122,14 @@ export default function MapPage() {
         });
         if (isMounted) {
           setWorks(data);
+          
+          if (sharedWorkName) {
+            const index = data.findIndex(w => w.name === sharedWorkName);
+            if (index !== -1) {
+              setActiveMarkerId(index);
+            }
+          }
+          
           setLoading(false);
         }
       } catch (err) {
@@ -131,7 +141,7 @@ export default function MapPage() {
     }
     loadData();
     return () => { isMounted = false; };
-  }, []);
+  }, [sharedWorkName]);
 
   const handleRouteRequest = () => {
     if (activeMarkerId === null) return;
