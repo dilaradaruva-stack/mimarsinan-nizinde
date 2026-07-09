@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Loader2, AlertCircle, Youtube, Navigation, Filter, X } from 'lucide-react';
@@ -196,18 +196,20 @@ export default function MapPage() {
     }
   };
 
-  const filteredWorks = works.filter(work => {
-    if (!activeFilter) return true;
-    if (activeFilter === 'Diğer Yapılar') {
-      const mainTypes = ['cami', 'külliye', 'medrese', 'hamam', 'türbe', 'köprü'];
-      return !mainTypes.some(t => work.type.toLowerCase().includes(t));
-    }
-    if (activeFilter.includes(',')) {
-      const filters = activeFilter.split(',').map(f => f.trim().toLowerCase());
-      return filters.some(f => work.type.toLowerCase().includes(f));
-    }
-    return work.type.toLowerCase().includes(activeFilter.toLowerCase());
-  });
+  const filteredWorks = useMemo(() => {
+    return works.filter(work => {
+      if (!activeFilter) return true;
+      if (activeFilter === 'Diğer Yapılar') {
+        const mainTypes = ['cami', 'külliye', 'medrese', 'hamam', 'türbe', 'köprü'];
+        return !mainTypes.some(t => work.type.toLowerCase().includes(t));
+      }
+      if (activeFilter.includes(',')) {
+        const filters = activeFilter.split(',').map(f => f.trim().toLowerCase());
+        return filters.some(f => work.type.toLowerCase().includes(f));
+      }
+      return work.type.toLowerCase().includes(activeFilter.toLowerCase());
+    });
+  }, [works, activeFilter]);
 
   const generalCenter: [number, number] = [40.0, 31.0];
 

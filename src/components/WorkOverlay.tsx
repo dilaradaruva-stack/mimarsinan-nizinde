@@ -86,6 +86,7 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
                 className="absolute inset-0 w-full h-full pointer-events-none md:pointer-events-auto"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
+                loading="lazy"
               ></iframe>
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
                 <div className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center">

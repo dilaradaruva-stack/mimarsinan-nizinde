@@ -211,7 +211,7 @@ async function geocodeWorks(works: Work[], onProgress?: (current: number, total:
       const q = encodeURIComponent(query);
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`, {
         headers: {
-          'User-Agent': 'MimarSinanMapApp/1.1 (dilaradaruva@gmail.com)'
+          'User-Agent': 'MimarSinanMapApp/1.1 (mimarsinaninizindee@gmail.com)'
         }
       });
       
@@ -227,7 +227,7 @@ async function geocodeWorks(works: Work[], onProgress?: (current: number, total:
         // Fallback for missing exact match
         const retryQuery = `${work.name}, Turkey`;
         const retryRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(retryQuery)}&limit=1`, {
-          headers: { 'User-Agent': 'MimarSinanMapApp/1.1 (dilaradaruva@gmail.com)' }
+          headers: { 'User-Agent': 'MimarSinanMapApp/1.1 (mimarsinaninizindee@gmail.com)' }
         });
         const retryData = await retryRes.json();
         

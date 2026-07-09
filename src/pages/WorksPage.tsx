@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { fetchWorks } from '../services/dataService';
 import { Work } from '../types';
 import { Loader2, Search, MapPin, Youtube, Navigation, Phone, Clock, MessageCircle } from 'lucide-react';
@@ -96,11 +96,13 @@ export default function WorksPage() {
     }
   };
 
-  const filteredWorks = works.filter(work => 
-    translateWorkField(work.name, 'name').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    work.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    translateWorkField(work.type, 'type').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredWorks = useMemo(() => {
+    return works.filter(work => 
+      translateWorkField(work.name, 'name').toLowerCase().includes(searchTerm.toLowerCase()) || 
+      work.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      translateWorkField(work.type, 'type').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [works, searchTerm, translateWorkField]);
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#F9F8F6] dark:bg-stone-900 transition-colors duration-200 relative">
@@ -146,8 +148,8 @@ export default function WorksPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredWorks.map((work, idx) => (
-              <div key={idx} className="bg-white dark:bg-stone-800 border border-[#D1D5DB] dark:border-stone-700 rounded-sm shadow-sm hover:shadow-md transition-all p-6 flex flex-col group relative">
+            {filteredWorks.map((work) => (
+              <div key={work.name + work.district} className="bg-white dark:bg-stone-800 border border-[#D1D5DB] dark:border-stone-700 rounded-sm shadow-sm hover:shadow-md transition-all p-6 flex flex-col group relative">
                 <div className="flex justify-between items-start mb-4">
                   <span 
                     className="flex items-center gap-1.5 text-[10px] px-2 py-1 uppercase font-bold text-white rounded-sm shadow-sm"
