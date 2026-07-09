@@ -28,12 +28,34 @@ const getIconPath = (type: string) => {
   return `<path d="M12 2L2 22h20L12 2z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
 };
 
+const legendItems = [
+  { type: 'Cami', color: '#B7410E', svg: getIconPath('cami') },
+  { type: 'Külliye', color: '#D4A017', svg: getIconPath('külliye') },
+  { type: 'Medrese', color: '#1E3A8A', svg: getIconPath('medrese') },
+  { type: 'Hamam', color: '#14B8A6', svg: getIconPath('hamam') },
+  { type: 'Türbe', color: '#10B981', svg: getIconPath('türbe') },
+  { type: 'Köprü', color: '#78716C', svg: getIconPath('köprü') },
+  { type: 'Diğer Yapılar', color: '#6B8E23', svg: getIconPath('diğer') }
+];
+
+const getPrimaryCategory = (type: string): string => {
+  const t = type.toLowerCase();
+  if (t.includes('cami')) return 'Cami';
+  if (t.includes('külliye')) return 'Külliye';
+  if (t.includes('medrese')) return 'Medrese';
+  if (t.includes('hamam')) return 'Hamam';
+  if (t.includes('türbe')) return 'Türbe';
+  if (t.includes('köprü')) return 'Köprü';
+  return 'Diğer Yapılar';
+};
+
 export default function WorksPage() {
   const [searchParams] = useSearchParams();
   const sharedWorkName = searchParams.get('work');
   const [works, setWorks] = useState<Work[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedWork, setSelectedWork] = useState<Work | null>(null);
   const { t, translateWorkField } = useLanguage();
 
@@ -72,16 +94,25 @@ export default function WorksPage() {
   };
 
   const filteredWorks = useMemo(() => {
-    const result = works.filter(work => 
-      translateWorkField(work.name, 'name').toLowerCase().includes(searchTerm.toLowerCase()) || 
-      work.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      translateWorkField(work.type, 'type').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let result = works;
+
+    if (activeFilter) {
+      result = result.filter(work => getPrimaryCategory(work.type) === activeFilter);
+    }
+
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLocaleLowerCase('tr-TR');
+      result = result.filter(work => 
+        translateWorkField(work.name, 'name').toLocaleLowerCase('tr-TR').includes(lowerSearch) || 
+        work.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        translateWorkField(work.type, 'type').toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
     
     return [...result].sort((a, b) => 
       translateWorkField(a.name, 'name').localeCompare(translateWorkField(b.name, 'name'), 'tr-TR')
     );
-  }, [works, searchTerm, translateWorkField]);
+  }, [works, activeFilter, searchTerm, translateWorkField]);
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#F9F8F6] dark:bg-stone-900 transition-colors duration-200 relative">
@@ -99,7 +130,7 @@ export default function WorksPage() {
 
       <div className="max-w-6xl mx-auto py-12 px-6">
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
           <div>
             <h1 className="text-4xl font-serif font-bold tracking-tight text-[#1A1A1A] dark:text-white leading-tight mb-2">
               {t('works.explore') || 'Tüm Eserler'}
@@ -120,6 +151,35 @@ export default function WorksPage() {
           </div>
         </div>
 
+        {/* Categories Filter */}
+        <div className="flex overflow-x-auto pb-4 mb-6 hide-scrollbar gap-2">
+          <button
+            onClick={() => setActiveFilter(null)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors border ${activeFilter === null ? 'bg-[#991B1B] border-[#991B1B] text-white' : 'bg-white dark:bg-stone-800 border-[#D1D5DB] dark:border-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700'}`}
+          >
+            <span className="text-xs font-bold uppercase tracking-widest">{t('map.filter_all')}</span>
+          </button>
+          {legendItems.map(item => {
+            const isActive = activeFilter === item.type;
+            return (
+              <button
+                key={item.type}
+                onClick={() => setActiveFilter(item.type)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors border ${isActive ? 'bg-gray-800 dark:bg-gray-100 border-gray-800 dark:border-gray-100 text-white dark:text-gray-900' : 'bg-white dark:bg-stone-800 border-[#D1D5DB] dark:border-stone-700 text-gray-700 dark:text-stone-300 hover:bg-gray-50 dark:hover:bg-stone-700'}`}
+              >
+                <div 
+                  className="w-4 h-4 rounded-full flex items-center justify-center p-0.5 shrink-0" 
+                  style={{ backgroundColor: item.color }}
+                  dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24" class="w-full h-full text-white">${item.svg}</svg>` }}
+                ></div>
+                <span className="text-xs font-bold uppercase tracking-widest">
+                  {item.type === 'Diğer Yapılar' ? t('map.other_structures') : translateWorkField(item.type, 'type')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Loader2 className="w-10 h-10 text-[#991B1B] animate-spin mb-4" />
@@ -127,8 +187,8 @@ export default function WorksPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredWorks.map((work) => (
-              <div key={work.name + work.district} className="bg-white dark:bg-stone-800 border border-[#D1D5DB] dark:border-stone-700 rounded-sm shadow-sm hover:shadow-md transition-all p-6 flex flex-col group relative">
+            {filteredWorks.map((work, idx) => (
+              <div key={`${work.name}-${work.district}-${idx}`} className="bg-white dark:bg-stone-800 border border-[#D1D5DB] dark:border-stone-700 rounded-sm shadow-sm hover:shadow-md transition-all p-6 flex flex-col group relative">
                 <div className="flex justify-between items-start mb-4">
                   <span 
                     className="flex items-center gap-1.5 text-[10px] px-2 py-1 uppercase font-bold text-white rounded-sm shadow-sm"
@@ -154,7 +214,7 @@ export default function WorksPage() {
                     <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
                     <span className="line-clamp-2">
                       {(work.address && work.address.toLowerCase() !== 'bilgi yok' && work.address.toLowerCase() !== 'yok') 
-                        ? `${work.address}, ${work.district}` 
+                        ? work.address 
                         : work.district}
                     </span>
                   </div>

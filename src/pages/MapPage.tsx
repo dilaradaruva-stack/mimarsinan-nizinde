@@ -67,6 +67,17 @@ const legendItems: LegendItem[] = [
   { type: 'Diğer Yapılar', color: '#6B8E23', svg: getIconPath('diğer') }
 ];
 
+const getPrimaryCategory = (type: string): string => {
+  const t = type.toLowerCase();
+  if (t.includes('cami')) return 'Cami';
+  if (t.includes('külliye')) return 'Külliye';
+  if (t.includes('medrese')) return 'Medrese';
+  if (t.includes('hamam')) return 'Hamam';
+  if (t.includes('türbe')) return 'Türbe';
+  if (t.includes('köprü')) return 'Köprü';
+  return 'Diğer Yapılar';
+};
+
 const getMarkerIcon = (type: string) => {
   const color = getMarkerColor(type);
   const iconPath = getIconPath(type);
@@ -198,15 +209,7 @@ export default function MapPage() {
     let result = works;
 
     if (activeFilter) {
-      if (activeFilter === 'Diğer Yapılar') {
-        const mainTypes = ['cami', 'külliye', 'medrese', 'hamam', 'türbe', 'köprü'];
-        result = result.filter(work => !mainTypes.some(t => work.type.toLowerCase().includes(t)));
-      } else if (activeFilter.includes(',')) {
-        const filters = activeFilter.split(',').map(f => f.trim().toLowerCase());
-        result = result.filter(work => filters.some(f => work.type.toLowerCase().includes(f)));
-      } else {
-        result = result.filter(work => work.type.toLowerCase().includes(activeFilter.toLowerCase()));
-      }
+      result = result.filter(work => getPrimaryCategory(work.type) === activeFilter);
     }
 
     if (searchTerm) {
@@ -326,7 +329,7 @@ export default function MapPage() {
               <span className={`text-[10px] sm:text-xs font-medium ${activeFilter === null ? 'text-black dark:text-white font-bold' : 'text-gray-700 dark:text-stone-300'}`}>{t('map.filter_all')}</span>
             </button>
             {legendItems.map(item => {
-              const isActive = activeFilter === item.type || (activeFilter && activeFilter.includes(',') && activeFilter.split(',').some(f => item.type.toLowerCase().includes(f.trim().toLowerCase()))) || (activeFilter === 'Su Kemeri' && item.type === 'Diğer Yapılar');
+              const isActive = activeFilter === item.type;
               return (
               <button 
                 key={item.type} 

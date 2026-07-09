@@ -119,7 +119,7 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
           <div className="p-6 space-y-6 flex-1 overflow-y-auto">
             <div className="flex items-start gap-3 text-sm text-gray-600 dark:text-stone-300">
               <MapPin className="w-5 h-5 mt-0.5 shrink-0 text-[#991B1B]" />
-              <p className="leading-relaxed">{work.address !== 'Bilgi Yok' && work.address !== 'Yok' ? work.address : ''} {work.district}</p>
+              <p className="leading-relaxed">{(work.address && work.address !== 'Bilgi Yok' && work.address !== 'Yok') ? work.address : work.district}</p>
             </div>
 
             {work.phone && work.phone !== 'Bilgi Yok' && work.phone !== 'Yok' && (

@@ -2,11 +2,23 @@ import Papa from 'papaparse';
 import { Work } from '../types';
 
 const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWf38Vkg27aMNgJE-fOFMzPLHD3eKgG1EYLrnDLcLE4MNuPHptx99XwLS-PZr8RaTSEaB2Q1f2eyi5/pub?output=csv";
+const NEW_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQNJBh4bfWd-ruyCfaXrGKcNAPOnCEvQF5pllGlLoG7V1A8GgJUH3v49-IDYJG-cVV6o-CggCm0_uh9/pub?output=csv";
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 let globalWorksCache: Work[] | null = null;
 let globalFetchPromise: Promise<Work[]> | null = null;
+
+const fetchCsv = (url: string): Promise<any[]> => {
+  return new Promise((resolve, reject) => {
+    Papa.parse(url, {
+      download: true,
+      header: true,
+      complete: (results) => resolve(results.data),
+      error: reject
+    });
+  });
+};
 
 export async function fetchWorks(onProgress?: (current: number, total: number) => void): Promise<Work[]> {
   if (globalWorksCache) {
@@ -14,35 +26,37 @@ export async function fetchWorks(onProgress?: (current: number, total: number) =
   }
   
   if (!globalFetchPromise) {
-    globalFetchPromise = new Promise((resolve, reject) => {
-      Papa.parse(DATA_URL, {
-        download: true,
-        header: true,
-        complete: async (results) => {
-          const works = results.data
-            .filter((row: any) => row['Mekan Adı'] && row['İlçe / Şehir'])
-            .map((row: any) => ({
-              name: row['Mekan Adı'],
-              type: row['Mekan Türü'],
-              district: row['İlçe / Şehir'],
-              year: row['Açılış Yılı'],
-              address: row['Adres'],
-              phone: row['Telefon'],
-              hours: row['Çalışma Saatleri'],
-              youtube: row['YouTube Videosu'],
-              mapsUrl: row['Yol Tarifi (Harita)']
-            }));
-          
-          try {
-            const geocodedWorks = await geocodeWorks(works, onProgress);
-            resolve(geocodedWorks);
-          } catch (error) {
-            reject(error);
-          }
-        },
-        error: reject
-      });
-    });
+    globalFetchPromise = (async () => {
+      try {
+        const [data1, data2] = await Promise.all([
+          fetchCsv(DATA_URL),
+          fetchCsv(NEW_DATA_URL)
+        ]);
+        
+        const combinedData = [...data1, ...data2];
+        
+        let works = combinedData
+          .filter((row: any) => row['Mekan Adı'] && row['İlçe / Şehir'])
+          .map((row: any) => ({
+            name: row['Mekan Adı'],
+            type: row['Mekan Türü'],
+            district: row['İlçe / Şehir'],
+            year: row['Açılış Yılı'],
+            address: row['Adres'],
+            phone: row['Telefon'],
+            hours: row['Çalışma Saatleri'],
+            youtube: row['YouTube Videosu'],
+            mapsUrl: row['Yol Tarifi (Harita)']
+          }));
+        
+        works = works.filter((w: any) => !(w.name === 'Kılıç Ali Paşa Hamamı' && w.hours && w.hours.includes('23:30')));
+
+        const geocodedWorks = await geocodeWorks(works, onProgress);
+        return geocodedWorks;
+      } catch (error) {
+        throw error;
+      }
+    })();
   }
 
   try {
