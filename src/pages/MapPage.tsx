@@ -108,9 +108,6 @@ export default function MapPage() {
     return (location.state as any)?.filter || null;
   });
   const [showLegend, setShowLegend] = useState(false);
-  
-  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
-  const [routingLoading, setRoutingLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -142,58 +139,18 @@ export default function MapPage() {
     if (!work || !work.lat || !work.lng) {
       if (work?.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
         const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-        window.open(fallbackUrl, '_blank') || window.location.assign(fallbackUrl);
+        window.open(fallbackUrl, '_blank') || (window.location.href = fallbackUrl);
       }
       return;
     }
 
-    setRoutingLoading(true);
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    const openIntent = (url: string) => {
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        setUserCoords([latitude, longitude]);
-        setRoutingLoading(false);
-        
-        // Open Google Maps / Apple Maps directions
-        const url = isIOS 
-          ? `https://maps.apple.com/?saddr=${latitude},${longitude}&daddr=${work.lat},${work.lng}&dirflg=d`
-          : `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
-        
-        openIntent(url);
-      }, (error) => {
-        // Fallback if permission denied or timeout
-        setRoutingLoading(false);
-        console.warn('Geolocation error:', error);
-        alert(t('map.location_failed') || 'Konum alınamadı. Standart harita linki açılıyor.');
-        if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-          const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-          openIntent(fallbackUrl);
-        }
-      }, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
-    } else {
-      setRoutingLoading(false);
-      alert(t('map.no_geolocation') || 'Tarayıcınız konum özelliğini desteklemiyor.');
-      if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-        const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-        openIntent(fallbackUrl);
-      }
-    }
+    
+    const url = isIOS 
+      ? `https://maps.apple.com/?daddr=${work.lat},${work.lng}&dirflg=d`
+      : `https://www.google.com/maps/dir/?api=1&destination=${work.lat},${work.lng}&travelmode=driving`;
+    
+    window.open(url, '_blank') || (window.location.href = url);
   };
 
   const filteredWorks = useMemo(() => {
@@ -330,8 +287,8 @@ export default function MapPage() {
             <WorkOverlay 
               work={works[activeMarkerId]}
               onClose={() => setActiveMarkerId(null)}
-              userCoords={userCoords}
-              routingLoading={routingLoading}
+              userCoords={null}
+              routingLoading={false}
               onRouteRequest={handleRouteRequest}
             />
           </div>

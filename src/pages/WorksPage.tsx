@@ -51,49 +51,18 @@ export default function WorksPage() {
     if (!work.lat || !work.lng) {
       if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
         const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-        window.open(fallbackUrl, '_blank') || window.location.assign(fallbackUrl);
+        window.open(fallbackUrl, '_blank') || (window.location.href = fallbackUrl);
       }
       return;
     }
 
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     
-    const openIntent = (url: string) => {
-      const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        
-        const url = isIOS 
-          ? `https://maps.apple.com/?saddr=${latitude},${longitude}&daddr=${work.lat},${work.lng}&dirflg=d`
-          : `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${work.lat},${work.lng}&travelmode=driving`;
-        
-        openIntent(url);
-      }, (error) => {
-        console.warn('Geolocation error:', error);
-        if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-          const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-          openIntent(fallbackUrl);
-        }
-      }, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
-    } else {
-      if (work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok') {
-        const fallbackUrl = work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`;
-        openIntent(fallbackUrl);
-      }
-    }
+    const url = isIOS 
+      ? `https://maps.apple.com/?daddr=${work.lat},${work.lng}&dirflg=d`
+      : `https://www.google.com/maps/dir/?api=1&destination=${work.lat},${work.lng}&travelmode=driving`;
+    
+    window.open(url, '_blank') || (window.location.href = url);
   };
 
   const filteredWorks = useMemo(() => {
