@@ -72,13 +72,26 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
 
           {/* YouTube Videosu */}
           {embedUrl ? (
-            <div className="w-1/2 md:w-full h-24 sm:h-32 md:h-auto aspect-auto md:aspect-video rounded-xl overflow-hidden bg-black relative shadow-lg border border-gray-200 dark:border-stone-700">
+            <div 
+              className="w-1/2 md:w-full h-24 sm:h-32 md:h-auto aspect-auto md:aspect-video rounded-xl overflow-hidden bg-black relative shadow-lg border border-gray-200 dark:border-stone-700 cursor-pointer md:cursor-auto"
+              onClick={() => {
+                if (window.innerWidth < 768 && work.youtube) {
+                  window.location.href = work.youtube;
+                }
+              }}
+            >
               <iframe 
                 src={embedUrl}
                 title={`${work.name} Video`}
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full pointer-events-none md:pointer-events-auto"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               ></iframe>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
+                <div className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center">
+                  <Youtube className="w-5 h-5 text-white" />
+                </div>
+              </div>
             </div>
           ) : (
              <div className="w-1/2 md:w-full h-24 sm:h-32 md:h-auto aspect-auto md:aspect-video rounded-xl bg-gray-50 dark:bg-stone-800/50 flex items-center justify-center border border-gray-200 dark:border-stone-700 shadow-sm">
