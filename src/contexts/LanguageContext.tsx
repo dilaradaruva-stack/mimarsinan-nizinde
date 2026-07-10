@@ -172,6 +172,17 @@ const dynamicTranslationsEn: Record<string, string> = {
   'Mescidi': 'Masjid',
   'Mescid': 'Masjid',
   'Mescit': 'Masjid',
+  'Tarihi Hastane': 'Historic Hospital',
+  'Mahzen/Depo': 'Cellar/Storage',
+  'Mahzeni': 'Cellar',
+  'Mahzen': 'Cellar',
+  'Deposu': 'Storage',
+  'Depo': 'Storage',
+  'Palace Bölümü': 'Palace Section',
+  'Saray Bölümü': 'Palace Section',
+  'Kültür Merkezi': 'Cultural Center',
+  'Hanı': 'Inn',
+  'Han': 'Inn',
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -216,7 +227,15 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         'türbe': 'Tomb',
         'köprü': 'Bridge',
         'su kemeri': 'Aqueduct',
-        'kervansaray': 'Caravanserai'
+        'kervansaray': 'Caravanserai',
+        'tarihi hastane': 'Historic Hospital',
+        'mahzen/depo': 'Cellar/Storage',
+        'mahzen / depo': 'Cellar/Storage',
+        'palace bölümü': 'Palace Section',
+        'saray bölümü': 'Palace Section',
+        'kültür merkezi': 'Cultural Center',
+        'han': 'Inn',
+        'imaret': 'Soup Kitchen'
       };
       const lower = text.toLowerCase().trim();
       if (typeMap[lower]) {
