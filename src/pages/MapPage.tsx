@@ -209,7 +209,16 @@ export default function MapPage() {
     let result = works;
 
     if (activeFilter) {
-      result = result.filter(work => getPrimaryCategory(work.type) === activeFilter);
+      if (activeFilter === 'Camii,Külliye') {
+        result = result.filter(work => {
+          const cat = getPrimaryCategory(work.type);
+          return cat === 'Cami' || cat === 'Külliye';
+        });
+      } else if (activeFilter === 'Su Kemeri') {
+        result = result.filter(work => work.type.toLowerCase().includes('kemer'));
+      } else {
+        result = result.filter(work => getPrimaryCategory(work.type) === activeFilter);
+      }
     }
 
     if (searchTerm) {

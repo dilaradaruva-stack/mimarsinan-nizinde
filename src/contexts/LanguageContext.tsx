@@ -213,8 +213,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     let translated = text;
     // Replace Turkish terms with English terms in names/types
     for (const [trTerm, enTerm] of Object.entries(dynamicTranslationsEn)) {
-      const regex = new RegExp(`\\b${trTerm}\\b`, 'gi');
-      translated = translated.replace(regex, enTerm);
+      const regex = new RegExp(`(^|\\s)${trTerm}(?=\\s|$|[.,;!?])`, 'gi');
+      translated = translated.replace(regex, `$1${enTerm}`);
     }
     
     // For specific structure types if they are just the word itself
@@ -237,7 +237,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         'han': 'Inn',
         'imaret': 'Soup Kitchen'
       };
-      const lower = text.toLowerCase().trim();
+      const lower = text.toLocaleLowerCase('tr-TR').trim();
       if (typeMap[lower]) {
         return typeMap[lower];
       }
