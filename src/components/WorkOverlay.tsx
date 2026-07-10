@@ -21,15 +21,20 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
 
   useEffect(() => {
     let isMounted = true;
-    setImageLoading(true);
-    getWikipediaImage(work.name).then(url => {
-      if (isMounted) {
-        setWikiImage(url);
-        setImageLoading(false);
-      }
-    });
+    if (work.image) {
+      setWikiImage(work.image);
+      setImageLoading(false);
+    } else {
+      setImageLoading(true);
+      getWikipediaImage(work.name).then(url => {
+        if (isMounted) {
+          setWikiImage(url);
+          setImageLoading(false);
+        }
+      });
+    }
     return () => { isMounted = false; };
-  }, [work.name]);
+  }, [work.name, work.image]);
 
   const embedUrl = getYoutubeEmbedUrl(work.youtube || '');
 
@@ -53,7 +58,7 @@ export default function WorkOverlay({ work, onClose, userCoords, routingLoading,
               <Loader2 className="w-6 h-6 md:w-8 md:h-8 text-gray-400 animate-spin" />
             ) : wikiImage ? (
               <img 
-                src={wikiImage} 
+                src={wikiImage} referrerPolicy="no-referrer" 
                 alt={work.name} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"

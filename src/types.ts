@@ -10,4 +10,5 @@ export interface Work {
   mapsUrl?: string;
   lat?: number;
   lng?: number;
+  image?: string;
 }

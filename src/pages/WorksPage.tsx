@@ -4,6 +4,7 @@ import { Work } from '../types';
 import { Loader2, Search, MapPin, Youtube, Navigation, Phone, Clock, MessageCircle } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import WorkOverlay from '../components/WorkOverlay';
+import WorkCardImage from '../components/WorkCardImage';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const getCategoryColor = (type: string) => {
@@ -188,26 +189,28 @@ export default function WorksPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredWorks.map((work, idx) => (
-              <div key={`${work.name}-${work.district}-${idx}`} className="bg-white dark:bg-stone-800 border border-[#D1D5DB] dark:border-stone-700 rounded-sm shadow-sm hover:shadow-md transition-all p-6 flex flex-col group relative">
-                <div className="flex justify-between items-start mb-4">
-                  <span 
-                    className="flex items-center gap-1.5 text-[10px] px-2 py-1 uppercase font-bold text-white rounded-sm shadow-sm"
-                    style={{ backgroundColor: getCategoryColor(work.type) }}
-                  >
-                    <div 
-                      className="w-3 h-3 text-white" 
-                      dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24">${getIconPath(work.type)}</svg>` }}
-                    ></div>
-                    {translateWorkField(work.type, 'type')}
-                  </span>
-                  <span className="text-xs font-mono text-gray-400">
-                    {work.year || t('map.unknown_year') || 'Bilinmiyor'}
-                  </span>
-                </div>
-                
-                <h3 className="font-serif text-xl font-bold mb-2 text-[#1A1A1A] dark:text-stone-100 group-hover:text-[#991B1B] dark:group-hover:text-red-400 transition-colors line-clamp-2">
-                  {translateWorkField(work.name, 'name')}
-                </h3>
+              <div key={`${work.name}-${work.district}-${idx}`} className="bg-white dark:bg-stone-800 border border-[#D1D5DB] dark:border-stone-700 rounded-sm shadow-sm hover:shadow-md transition-all flex flex-col group relative overflow-hidden">
+                <WorkCardImage work={work} />
+                <div className="p-6 flex flex-col flex-1">
+                  <div className="flex justify-between items-start mb-4">
+                    <span 
+                      className="flex items-center gap-1.5 text-[10px] px-2 py-1 uppercase font-bold text-white rounded-sm shadow-sm"
+                      style={{ backgroundColor: getCategoryColor(work.type) }}
+                    >
+                      <div 
+                        className="w-3 h-3 text-white" 
+                        dangerouslySetInnerHTML={{ __html: `<svg viewBox="0 0 24 24">${getIconPath(work.type)}</svg>` }}
+                      ></div>
+                      {translateWorkField(work.type, 'type')}
+                    </span>
+                    <span className="text-xs font-mono text-gray-400 shrink-0 ml-2">
+                      {work.year || t('map.unknown_year') || 'Bilinmiyor'}
+                    </span>
+                  </div>
+                  
+                  <h3 className="font-serif text-xl font-bold mb-2 text-[#1A1A1A] dark:text-stone-100 group-hover:text-[#991B1B] dark:group-hover:text-red-400 transition-colors line-clamp-2">
+                    {translateWorkField(work.name, 'name')}
+                  </h3>
                 
                 <div className="flex flex-col gap-2 mb-6 flex-1">
                   <div className="flex items-start gap-2 text-gray-500 dark:text-stone-400 text-sm">
@@ -232,7 +235,7 @@ export default function WorksPage() {
                   )}
                 </div>
                 
-                <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-stone-700 mt-auto">
+                  <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-stone-700 mt-auto">
                     {work.mapsUrl && work.mapsUrl !== 'Git' && work.mapsUrl !== 'Yok' && (
                       <a 
                         href={work.mapsUrl.startsWith('http') ? work.mapsUrl : `https://${work.mapsUrl}`} 
@@ -262,6 +265,7 @@ export default function WorksPage() {
                       <Search className="w-3 h-3 text-blue-600 dark:text-blue-500" />
                       {t('works.inspect')}
                     </button>
+                  </div>
                 </div>
               </div>
             ))}

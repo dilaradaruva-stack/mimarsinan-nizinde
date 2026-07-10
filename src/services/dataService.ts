@@ -1,5 +1,6 @@
 import Papa from 'papaparse';
 import { Work } from '../types';
+import { getImageForWork } from './imageMapping';
 
 const DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRWf38Vkg27aMNgJE-fOFMzPLHD3eKgG1EYLrnDLcLE4MNuPHptx99XwLS-PZr8RaTSEaB2Q1f2eyi5/pub?output=csv";
 const NEW_DATA_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQNJBh4bfWd-ruyCfaXrGKcNAPOnCEvQF5pllGlLoG7V1A8GgJUH3v49-IDYJG-cVV6o-CggCm0_uh9/pub?output=csv";
@@ -9,10 +10,14 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 let globalWorksCache: Work[] | null = null;
 let globalFetchPromise: Promise<Work[]> | null = null;
 
-const fetchCsv = (url: string): Promise<any[]> => {
+const fetchCsv = async (url: string): Promise<any[]> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const text = await response.text();
   return new Promise((resolve, reject) => {
-    Papa.parse(url, {
-      download: true,
+    Papa.parse(text, {
       header: true,
       complete: (results) => resolve(results.data),
       error: reject
@@ -46,7 +51,8 @@ export async function fetchWorks(onProgress?: (current: number, total: number) =
             phone: row['Telefon'],
             hours: row['Çalışma Saatleri'],
             youtube: row['YouTube Videosu'],
-            mapsUrl: row['Yol Tarifi (Harita)']
+            mapsUrl: row['Yol Tarifi (Harita)'],
+            image: getImageForWork(row['Mekan Adı'])
           }));
         
         works = works.filter((w: any) => !(w.name === 'Kılıç Ali Paşa Hamamı' && w.hours && w.hours.includes('23:30')));
